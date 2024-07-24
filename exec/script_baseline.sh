@@ -2,7 +2,11 @@
 n_gpu=0
 
 # Linear Regression
-python scripts/train.py --config configs/base.yaml \
+#python scripts/train.py --config configs/base.yaml \
+#    --wandb.name "LR_baseline" \
+#    --gpu.n_gpu $n_gpu
+
+python -m pdb scripts/train.py --config configs/base.yaml \
     --wandb.name "LR_baseline" \
     --gpu.n_gpu $n_gpu
 
