@@ -11,7 +11,7 @@ model:
     n_embd: 256
     n_layer: 12
     n_head: 8
-    n_dims: 20
+    n_dims: 10
     n_positions: 101
 
 training:
