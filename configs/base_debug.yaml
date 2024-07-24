@@ -11,7 +11,7 @@ model:
     n_embd: 256
     n_layer: 12
     n_head: 8
-    n_dims: 20
+    n_dims: 10
     n_positions: 101
 
 training:
@@ -24,12 +24,12 @@ training:
     keep_every_steps: 100000
     curriculum:
         dims:
-            start: 5
-            end: 20
+            start: 10
+            end: 10
             inc: 1
             interval: 5000
         points:
-            start: 11
+            start: 41
             end: 41
             inc: 2
             interval: 5000

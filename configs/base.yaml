@@ -12,7 +12,7 @@ model:
     n_layer: 12
     n_head: 8
     n_dims: 10
-    n_positions: 101
+    n_positions: 201
 
 training:
     batch_size: 64
