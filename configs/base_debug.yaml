@@ -1,7 +1,7 @@
-#wandb:
-#    project: Lets_Loop2
-#    notes:
-#    log_every_steps: 100
+wandb:
+    project: Lets_Loop2
+    notes:
+    log_every_steps: 100
 
 gpu:
     cuda: True
@@ -21,7 +21,7 @@ training:
     weight_decay: 0.0
     train_steps: 100000
     save_every_steps: 1000
-    keep_every_steps: 100000
+    keep_every_steps: 10000
     curriculum:
         dims:
             start: 10

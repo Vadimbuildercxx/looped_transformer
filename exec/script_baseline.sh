@@ -6,10 +6,6 @@ n_gpu=0
 #    --wandb.name "LR_baseline" \
 #    --gpu.n_gpu $n_gpu
 
-python -m pdb scripts/train.py --config configs/base.yaml \
-    --wandb.name "LR_baseline" \
-    --gpu.n_gpu $n_gpu
-
 ## Sparse LR
 #python scripts/train.py --config configs/sparse_LR/base.yaml \
 #    --wandb.name "SparseLR_baseline" \
