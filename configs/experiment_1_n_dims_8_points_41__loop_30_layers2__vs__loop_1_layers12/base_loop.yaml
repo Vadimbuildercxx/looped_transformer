@@ -1,6 +1,6 @@
 wandb:
     project: Lets_Loop2
-    notes: exp_1__n_dims_8_points_41__loop_30_layers2__vs__loop_1_layers12
+    notes: exp_1__n_dims_8_points_41__loop_5_layers2__vs__loop_1_layers12
     log_every_steps: 100
 
 gpu:
@@ -34,8 +34,8 @@ training:
             inc: 0
             interval: 10000
         loops:
-            start: 30
-            end: 30
+            start: 5
+            end: 5
             inc: 0
             interval: 500
     n_loop_window: 20
