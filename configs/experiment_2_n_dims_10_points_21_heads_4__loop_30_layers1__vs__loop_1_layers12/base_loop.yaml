@@ -10,8 +10,8 @@ model:
     family: gpt2_loop
     n_embd: 256
     n_layer: 1
-    n_head: 8
-    n_dims: 8
+    n_head: 4
+    n_dims: 10
     n_positions: 101
 
 training:
@@ -24,18 +24,18 @@ training:
     keep_every_steps: 100000
     curriculum:
         dims:
-            start: 8
-            end: 8
+            start: 10
+            end: 10
             inc: 0
             interval: 10000
         points:
-            start: 41
-            end: 41
+            start: 21
+            end: 21
             inc: 0
             interval: 10000
         loops:
-            start: 50
-            end: 50
+            start: 30
+            end: 30
             inc: 0
             interval: 500
     n_loop_window: 20
