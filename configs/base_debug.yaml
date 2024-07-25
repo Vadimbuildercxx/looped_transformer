@@ -24,15 +24,15 @@ training:
     keep_every_steps: 10000
     curriculum:
         dims:
-            start: 10
-            end: 10
-            inc: 0
-            interval: 5000
-        points:
-            start: 41
-            end: 41
+            start: 5
+            end: 15
             inc: 2
-            interval: 5000
+            interval: 6000
+        points:
+            start: 21
+            end: 61
+            inc: 8
+            interval: 6000
         loops:
             start: 1
             end: 1
