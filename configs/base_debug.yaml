@@ -11,7 +11,7 @@ model:
     n_embd: 256
     n_layer: 12
     n_head: 8
-    n_dims: 10
+    n_dims: 8
     n_positions: 101
 
 training:
@@ -19,19 +19,19 @@ training:
     task_name: linear_regression
     learning_rate: 0.0001
     weight_decay: 0.0
-    train_steps: 100000
+    train_steps: 50000
     save_every_steps: 1000
     keep_every_steps: 10000
     curriculum:
         dims:
-            start: 5
-            end: 15
-            inc: 2
+            start: 8
+            end: 8
+            inc: 0
             interval: 6000
         points:
-            start: 21
-            end: 61
-            inc: 8
+            start: 41
+            end: 41
+            inc: 0
             interval: 6000
         loops:
             start: 1
