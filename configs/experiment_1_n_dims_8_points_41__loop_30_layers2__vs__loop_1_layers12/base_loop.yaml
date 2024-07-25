@@ -34,8 +34,8 @@ training:
             inc: 0
             interval: 10000
         loops:
-            start: 5
-            end: 5
+            start: 50
+            end: 50
             inc: 0
             interval: 500
     n_loop_window: 20
