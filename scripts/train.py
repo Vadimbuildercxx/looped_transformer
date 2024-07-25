@@ -150,6 +150,7 @@ def main(args, device):
             xs, ys = real_task.xs.float(), real_task.ys.float()
 
         loss, output, total_norm, grad_norm_dict = train_step(args, curriculum, model, xs, ys, optimizer, ctx, scaler)
+        train_loss = loss
 
         # EVALUATION ======================================
         point_wise_tags = list(range(curriculum.n_points))  # [0, 1, 2, ..., n-1]
@@ -173,6 +174,7 @@ def main(args, device):
             wandb.log(
                 {
                     "overall_loss": loss,
+                    "overall_train_loss": train_loss,
                     "loop_times": curriculum.n_loops,
                     "grad_norm/layerwise": grad_norm_dict,
                     "grad_norm": total_norm,
@@ -188,7 +190,7 @@ def main(args, device):
 
         curriculum.update()
 
-        pbar.set_description(f"loss {loss}")
+        pbar.set_description(f"train_loss: {train_loss}, loss {loss}")
         if i % args.training.save_every_steps == 0:
             training_state = {
                 "model_state_dict": model.state_dict(),

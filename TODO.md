@@ -1,8 +1,8 @@
 ## Some ideas about research
 
-- [ ] Check attention heads for linearity or gradient decsent properties.
+- [ ] Check attention heads for linearity or gradient descent properties.
 - [ ] Try to replace gradient descent with other optimization algos.
-- [ ] Check for loss landscape.
+- [ ] Check for loss landscape with compare to linear regression.
 - [ ] Try to make some parameters learnable (example: lr)
 - [ ] Compare with ordinary TF like in paper.
 
