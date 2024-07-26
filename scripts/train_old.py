@@ -72,7 +72,7 @@ def train_step(args, curriculum, model, xs, ys, optimizer, ctx, scaler):
     return loss.detach(), y_pred.detach(), total_norm, norm_dict
 
 
-def main(args, device):
+def main(args, model, device):
     # TORCH 2.0 ZONE ###############################
     torch.set_float32_matmul_precision('highest')
     torch.backends.cuda.matmul.allow_tf32 = True  # allow tf32 on matmul
@@ -95,7 +95,7 @@ def main(args, device):
     )
 
     torch.manual_seed(args.training.seed)
-    model = build_model(args.model)
+    # model = build_model(args.model)
     # model = torch.compile(model)
 
     model.to(device)
@@ -232,4 +232,6 @@ if __name__ == "__main__":
     with open(os.path.join(out_dir, "config.yaml"), "w") as yaml_file:
         yaml.dump(args.__dict__, yaml_file, default_flow_style=False)
 
-    main(args, device)
+    model = build_model(args.model)
+
+    main(args, model, device)
