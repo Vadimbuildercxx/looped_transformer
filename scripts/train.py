@@ -133,7 +133,7 @@ def train_loop(args, model, curriculum, device, do_wandb_log):
         device=device)
 
 
-def train_without_config(in_model,
+def train_without_config(model,
                          curriculum,
                          lr=0.0001,
                          add_inputs_embeds = False,
@@ -178,7 +178,6 @@ def train_without_config(in_model,
         )
 
     torch.manual_seed(seed)
-    model = in_model
     # model = torch.compile(model)
     model.to(device)
     model.train()
