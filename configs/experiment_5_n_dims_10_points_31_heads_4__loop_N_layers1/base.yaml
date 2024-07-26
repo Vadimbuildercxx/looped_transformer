@@ -1,6 +1,6 @@
 wandb:
     project: Lets_Loop2
-    notes: exp_1__n_dims_8_points_41__loop_30_layers2__vs__loop_1_layers12
+    notes: base transformer 12 layers
     log_every_steps: 100
 
 gpu:
@@ -9,7 +9,7 @@ gpu:
 model:
     family: gpt2
     n_embd: 256
-    n_layer: 1
+    n_layer: 12
     n_head: 4
     n_dims: 10
     n_positions: 101
@@ -19,9 +19,9 @@ training:
     task_name: linear_regression
     learning_rate: 0.0001
     weight_decay: 0.0
-    train_steps: 10000
+    train_steps: 20000
     save_every_steps: 1000
-    keep_every_steps: 10000
+    keep_every_steps: 100000
     curriculum:
         dims:
             start: 10
@@ -29,8 +29,8 @@ training:
             inc: 0
             interval: 10000
         points:
-            start: 21
-            end: 21
+            start: 31
+            end: 31
             inc: 0
             interval: 10000
         loops:

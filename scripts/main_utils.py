@@ -106,10 +106,9 @@ def get_run_id(args):
     return run_id
 
 class GraphPlotter:
-    def __init__(self, val_step):
-        self.fig = plt.figure(figsize = (10,4))
+    def __init__(self):
+        self.fig = plt.figure(figsize=(10, 4))
         self.ax = self.fig.subplots(1, 3)
-        self.val_step = val_step
 
     def plot_graph(self, metrics):
         steps = [t_loss["step"] for t_loss in metrics]

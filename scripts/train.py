@@ -187,7 +187,6 @@ def train_without_config(model,
         model.parameters(), lr=lr, weight_decay=weight_decay)
     scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
 
-
     # Here the model load the pretrained model
     # args, model, optimizer, curriculum, state_path, starting_step = load_pretrained_model(
     #     args, model, optimizer, curriculum, device)
@@ -207,7 +206,6 @@ def train_without_config(model,
         real_task = task_sampler()
         xs, ys = real_task.xs.float(), real_task.ys.float()
 
-        #loss, output, total_norm, grad_norm_dict = train_step(curriculum, model, xs, ys, optimizer, ctx, scaler)
         loss, output, total_norm, grad_norm_dict = train_step(curriculum, model, xs, ys, optimizer, ctx, scaler,
                                                               add_inputs_embeds, family=family, use_ctx=use_ctx, n_loop_window=n_loop_window)
 
