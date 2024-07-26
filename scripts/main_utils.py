@@ -4,6 +4,7 @@ import uuid
 import os
 from torch.utils.data import Dataset
 
+import matplotlib.pyplot as plt
 
 class my_Dataset(Dataset):
     """This function reads the data from a pickle file and creates a PyTorch dataset, which contains:
@@ -104,3 +105,21 @@ def get_run_id(args):
     run_id = "{}-{}-".format(now, args.wandb.name) + str(uuid.uuid4())[:4]
     return run_id
 
+class GraphPlotter:
+    def __init__(self, val_step):
+        self.fig = plt.figure(figsize = (10,4))
+        self.ax = self.fig.subplots(1, 3)
+        self.val_step = val_step
+
+    def plot_graph(self, metrics):
+        steps = [t_loss["step"] for t_loss in metrics]
+        self.ax[0].plot(steps, [t_loss["overall_loss"] for t_loss in metrics])
+        self.ax[0].legend(['Train'])
+
+        self.ax[1].plot(steps, [list(t_loss["pointwise/loss"].values())[-1] for t_loss in metrics])
+        self.ax[1].legend(['pointwise_loss_mean'])
+
+        self.ax[2].plot(steps, [t_loss["scaled_loss"] for t_loss in metrics])
+        self.ax[2].legend(['scaled_loss'])
+
+        plt.show()

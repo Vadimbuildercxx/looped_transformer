@@ -12,12 +12,55 @@ from models import build_model
 from tasks import get_task_sampler
 from main_utils import init_device, get_run_id, load_pretrained_model
 # from eval import get_run_metrics
-
+from main_utils import gen_dataloader
 
 import wandb
 
 torch.backends.cudnn.benchmark = True
 
+def validate_model(
+        model,
+        n_loops,
+        model_n_dims,
+        n_points,
+        n_dims_truncated,
+        val_size=1000,
+        batch_size=64,
+        task_name="linear_regression",
+        family="gpt_2",
+        device="cuda"):
+    """
+    Method for model validation. Use {task_name} generated data.
+    """
+    task_sampler = get_task_sampler(
+        task_name=task_name,
+        batch_size=batch_size,
+        n_points=n_points,
+        n_dims=model_n_dims,
+        n_dims_truncated=n_dims_truncated,
+        device=device,
+        sparsity=False,
+    )
+
+    val_loader = gen_dataloader(task_sampler, val_size, batch_size)
+
+    val_loss = 0
+    with torch.no_grad():
+        for batch in val_loader:
+            xs, ys = batch['x'].to(device), batch['y'].to(device)
+            if family == 'gpt2':
+                output = model(xs, ys)  # [B,]
+            elif family == 'gpt2_loop':
+                n_loops = n_loops # curriculum.n_loops  # K
+                y_pred_list = model(xs, ys, 0, n_loops)
+                output = y_pred_list[-1]  # [B, n]
+            else:
+                raise NotImplementedError
+            point_wise_loss = (output - ys).square().mean(dim=0)
+            loss = point_wise_loss[-1] / model_n_dims
+            val_loss += loss.item()
+    val_loss /= len(val_loader)
+    return val_loss
 
 def calculate_gradient_norm(model):
     total_norm = 0.0
@@ -83,6 +126,7 @@ def main(args, device):
         ctx = torch.amp.autocast(device_type='cuda', dtype=ptdtype, cache_enabled=False)
     else:
         ctx = None
+    #ctx = torch.amp.autocast(device_type='cuda', dtype=ptdtype, cache_enabled=False)
     ################################################
     wandb.init(
         dir=args.out_dir,
@@ -111,7 +155,7 @@ def main(args, device):
         args, model, optimizer, curriculum, device)
 
     if args.training.use_fixed_dataset:
-        from main_utils import gen_dataloader
+
         task_sampler = get_task_sampler(
             task_name=args.training.task_name,
             batch_size=args.training.batch_size,
@@ -150,7 +194,6 @@ def main(args, device):
             xs, ys = real_task.xs.float(), real_task.ys.float()
 
         loss, output, total_norm, grad_norm_dict = train_step(args, curriculum, model, xs, ys, optimizer, ctx, scaler)
-        train_loss = loss
 
         # EVALUATION ======================================
         point_wise_tags = list(range(curriculum.n_points))  # [0, 1, 2, ..., n-1]
@@ -173,8 +216,8 @@ def main(args, device):
                         loss = point_wise_loss.mean()
             wandb.log(
                 {
+                    "scaled_loss": loss / curriculum.n_dims_truncated,
                     "overall_loss": loss,
-                    "overall_train_loss": train_loss,
                     "loop_times": curriculum.n_loops,
                     "grad_norm/layerwise": grad_norm_dict,
                     "grad_norm": total_norm,
@@ -190,7 +233,7 @@ def main(args, device):
 
         curriculum.update()
 
-        pbar.set_description(f"train_loss: {train_loss}, loss {loss}")
+        pbar.set_description(f"loss {loss}")
         if i % args.training.save_every_steps == 0:
             training_state = {
                 "model_state_dict": model.state_dict(),

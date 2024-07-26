@@ -33,11 +33,16 @@ class Curriculum:
         return min(var, schedule.end)
 
 
-class CurriculumSimple(Curriculum):
-    def __init__(self, dims_start, points_start, loops_start, dims_schedule, points_schedule, loops_schedule):
-        # inc denotes the change in n_dims,
-        # this change is done every interval,
-        # and start/end are the limits of the parameter
+class CurriculumSimple:
+    def __init__(self,
+                 dims_start,
+                 points_start,
+                 loops_start,
+                 dims_schedule: list,
+                 points_schedule: list,
+                 loops_schedule: list):
+
+        """schedule in format [start, end, increment step]"""
         self.n_dims_truncated = dims_start
         self.n_points = points_start
         self.n_loops = loops_start
@@ -45,8 +50,25 @@ class CurriculumSimple(Curriculum):
         self.n_dims_schedule = dims_schedule
         self.n_points_schedule = points_schedule
         self.n_loops_schedule = loops_schedule
+
+
         self.step_count = 0
         super().__init__()
+
+    def update(self):
+        self.step_count += 1
+        self.n_dims_truncated = self.update_var(
+            self.n_dims_truncated, self.n_dims_schedule)
+        self.n_points = self.update_var(
+            self.n_points, self.n_points_schedule)
+        self.n_loops = self.update_var(
+            self.n_loops, self.n_loops_schedule)
+
+    def update_var(self, var, schedule):
+        if self.step_count % schedule[0] == 0:
+            var += schedule[1]
+
+        return min(var, schedule[2])
 
 
 # returns the final value of var after applying curriculum.
