@@ -107,8 +107,8 @@ def main(args, model, device):
     curriculum = Curriculum(args.training.curriculum)
 
     # Here the model load the pretrained model
-    # args, model, optimizer, curriculum, state_path, starting_step = load_pretrained_model(
-    #     args, model, optimizer, curriculum, device)
+    args, model, optimizer, curriculum, state_path, starting_step = load_pretrained_model(
+         args, model, optimizer, curriculum, device)
 
     # if args.training.use_fixed_dataset:
     #     from main_utils import gen_dataloader
