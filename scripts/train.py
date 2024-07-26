@@ -124,12 +124,11 @@ def train_loop(args, model, curriculum, device):
         batch_size=args.training.batch_size, n_loop_window=args.training.n_loop_window,
         model_n_dims=args.model.n_dims, train_steps=args.training.train_steps,
         family=args.model.family, experiment_name=args.wandb.name,
-        out_dir=args.out_dir, do_wandb_log=False, log_every_steps= args.wandb.log_every_steps,
+        out_dir=args.out_dir, do_wandb_log=False, log_every_steps=args.wandb.log_every_steps,
         use_ctx=args.training.use_ctx,
         project_name=args.wandb.project, project_notes=args.wandb.notes,
         seed=args.training.seed, weight_decay=args.training.weight_decay,
-        sparsity=args.training.sparsity,save_every_steps=args.training.save_every_steps,
-        n_loops=1, device=device)
+        sparsity=args.training.sparsity,save_every_steps=args.training.save_every_steps, device=device)
 
 
 def train_without_config(model,
@@ -151,7 +150,7 @@ def train_without_config(model,
                          project_notes="",
                          seed=42,
                          weight_decay=0.0,
-                         sparsity=False, save_every_steps=1000):
+                         sparsity=False, save_every_steps=1000, device="gpu",):
     # TORCH 2.0 ZONE ###############################
     metrics = []
     torch.set_float32_matmul_precision('highest')
