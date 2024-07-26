@@ -127,7 +127,7 @@ def main(args, model, device):
     #     test_loader = gen_dataloader(task_sampler, args.training.test_size,
     #                                  args.training.batch_size)
 
-    pbar = tqdm(range(starting_step, args.training.train_steps))
+    pbar = tqdm(range(0, args.training.train_steps))
     for i in pbar:
 
         task_sampler = get_task_sampler(
@@ -186,13 +186,13 @@ def main(args, model, device):
         curriculum.update()
 
         pbar.set_description(f"train_loss: {train_loss}, loss {loss}")
-        if i % args.training.save_every_steps == 0:
-            training_state = {
-                "model_state_dict": model.state_dict(),
-                "optimizer_state_dict": optimizer.state_dict(),
-                "train_step": i,
-            }
-            torch.save(training_state, state_path)
+        # if i % args.training.save_every_steps == 0:
+        #     training_state = {
+        #         "model_state_dict": model.state_dict(),
+        #         "optimizer_state_dict": optimizer.state_dict(),
+        #         "train_step": i,
+        #     }
+        #     torch.save(training_state, state_path)
         if (
                 args.training.keep_every_steps > 0
                 and i % args.training.keep_every_steps == 0
