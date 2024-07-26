@@ -133,7 +133,7 @@ def train_loop(args, model, curriculum, device, do_wandb_log):
         device=device)
 
 
-def train_without_config(model,
+def train_without_config(in_model,
                          curriculum,
                          lr=0.0001,
                          add_inputs_embeds = False,
@@ -178,7 +178,7 @@ def train_without_config(model,
         )
 
     torch.manual_seed(seed)
-
+    model = in_model
     # model = torch.compile(model)
     model.to(device)
     model.train()
@@ -272,8 +272,8 @@ if __name__ == "__main__":
     with open(os.path.join(out_dir, "config.yaml"), "w") as yaml_file:
         yaml.dump(args.__dict__, yaml_file, default_flow_style=False)
 
-    model = build_model(args.model)
+    builded_model = build_model(args.model)
 
     curriculum = Curriculum(args.training.curriculum)
     ####
-    train_loop(args, model, curriculum, device, do_wandb_log=True)
+    train_loop(args, builded_model, curriculum, device, do_wandb_log=True)
