@@ -107,8 +107,8 @@ def main(args, model, device):
     curriculum = Curriculum(args.training.curriculum)
 
     # Here the model load the pretrained model
-    args, model, optimizer, curriculum, state_path, starting_step = load_pretrained_model(
-        args, model, optimizer, curriculum, device)
+    # args, model, optimizer, curriculum, state_path, starting_step = load_pretrained_model(
+    #     args, model, optimizer, curriculum, device)
 
     # if args.training.use_fixed_dataset:
     #     from main_utils import gen_dataloader
@@ -129,25 +129,19 @@ def main(args, model, device):
 
     pbar = tqdm(range(starting_step, args.training.train_steps))
     for i in pbar:
-        if args.training.use_fixed_dataset:
-            try:
-                batch = next(train_iter)
-                xs, ys = batch['x'].to(device), batch['y'].to(device)
-            except StopIteration:
-                train_iter = iter(train_loader)
-        else:
-            task_sampler = get_task_sampler(
-                task_name=args.training.task_name,
-                batch_size=args.training.batch_size,
-                n_points=curriculum.n_points,
-                n_dims=args.model.n_dims,
-                n_dims_truncated=curriculum.n_dims_truncated,
-                device=device,
-                sparsity=args.training.sparsity,
-            )
 
-            real_task = task_sampler()
-            xs, ys = real_task.xs.float(), real_task.ys.float()
+        task_sampler = get_task_sampler(
+            task_name=args.training.task_name,
+            batch_size=args.training.batch_size,
+            n_points=curriculum.n_points,
+            n_dims=args.model.n_dims,
+            n_dims_truncated=curriculum.n_dims_truncated,
+            device=device,
+            sparsity=args.training.sparsity,
+        )
+
+        real_task = task_sampler()
+        xs, ys = real_task.xs.float(), real_task.ys.float()
 
         loss, output, total_norm, grad_norm_dict = train_step(
             args, curriculum, model, xs, ys, optimizer, ctx, scaler)
