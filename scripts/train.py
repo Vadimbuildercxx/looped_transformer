@@ -117,7 +117,7 @@ def train_step(curriculum, model, xs, ys, optimizer, ctx, scaler, add_inputs_emb
     return loss.detach(), y_pred.detach(), total_norm, norm_dict
 
 
-def train_loop(args, model, curriculum, device):
+def train_loop(args, model, curriculum, device, do_wandb_log):
     """Method for training loop from configuration."""
     return train_without_config(
         model, curriculum, lr=args.training.learning_rate,
@@ -125,11 +125,12 @@ def train_loop(args, model, curriculum, device):
         batch_size=args.training.batch_size, n_loop_window=args.training.n_loop_window,
         model_n_dims=args.model.n_dims, train_steps=args.training.train_steps,
         family=args.model.family, experiment_name=args.wandb.name,
-        out_dir=args.out_dir, do_wandb_log=False, log_every_steps=args.wandb.log_every_steps,
+        out_dir=args.out_dir, do_wandb_log=do_wandb_log, log_every_steps=args.wandb.log_every_steps,
         use_ctx=args.training.use_ctx,
         project_name=args.wandb.project, project_notes=args.wandb.notes,
         seed=args.training.seed, weight_decay=args.training.weight_decay,
-        sparsity=args.training.sparsity,save_every_steps=args.training.save_every_steps, device=device)
+        sparsity=args.training.sparsity, save_every_steps=args.training.save_every_steps,
+        device=device)
 
 
 def train_without_config(model,
@@ -275,4 +276,4 @@ if __name__ == "__main__":
 
     curriculum = Curriculum(args.training.curriculum)
 
-    train_loop(args, model, curriculum, device)
+    train_loop(args, model, curriculum, device, do_wandb_log=True)
