@@ -75,22 +75,22 @@ def calculate_gradient_norm(model):
     return norm_dict, total_norm
 
 
-def train_step(args, curriculum, model, xs, ys, optimizer, ctx, scaler, add_inputs_embeds):
-    if args.model.family in ['gpt2', 'gpt2_tying']:
+def train_step(curriculum, model, xs, ys, optimizer, ctx, scaler, add_inputs_embeds, use_ctx, n_loop_window, family):
+    if family in ['gpt2', 'gpt2_tying']:
         if ctx is not None:
             with ctx:
-                y_pred = model(xs, ys, add_inputs_embeds=args.training.add_inputs_embeds)  # [B, n]
+                y_pred = model(xs, ys, add_inputs_embeds=add_inputs_embeds)  # [B, n]
                 # list of [B, n], length K + 1, get rid of the 0-th one
                 loss = (ys - y_pred).square().mean()  # auto on both K and n (number of in context samples)
         else:
-            y_pred = model(xs, ys, add_inputs_embeds=args.training.add_inputs_embeds)  # [B, n]
+            y_pred = model(xs, ys, add_inputs_embeds=add_inputs_embeds)  # [B, n]
             # list of [B, n], length K + 1, get rid of the 0-th one
             loss = (ys - y_pred).square().mean()  # auto on both K and n (number of in context samples)
-    elif args.model.family in ['gpt2_loop']:
+    elif family in ['gpt2_loop']:
         n_loops = curriculum.n_loops  # K
         if ctx is not None:
             with ctx:
-                horizon_start = max(0, n_loops - args.training.n_loop_window)
+                horizon_start = max(0, n_loops - n_loop_window)
                 y_pred_list = model(xs, ys, horizon_start, n_loops)
                 # list of [B, n], length K
                 y_pred_arr = torch.cat(y_pred_list, dim=0)  # [B * K, n]
@@ -98,14 +98,14 @@ def train_step(args, curriculum, model, xs, ys, optimizer, ctx, scaler, add_inpu
                 loss = (y_star_arr - y_pred_arr).square().mean()  # auto on both K and n (number of in context samples)
                 y_pred = y_pred_list[-1]  # [B, n]
         else:
-            horizon_start = max(0, n_loops - args.training.n_loop_window)
+            horizon_start = max(0, n_loops - n_loop_window)
             y_pred_list = model(xs, ys, horizon_start, n_loops)
             # list of [B, n], length K
             y_pred_arr = torch.cat(y_pred_list, dim=0)  # [B * K, n]
             y_star_arr = torch.cat([ys] * len(y_pred_list), dim=0)  # [B * K, n]
             loss = (y_star_arr - y_pred_arr).square().mean()  # auto on both K and n (number of in context samples)
             y_pred = y_pred_list[-1]  # [B, n]
-    if args.training.use_ctx:
+    if use_ctx:
         scaler.scale(loss).backward()
         scaler.step(optimizer)
         scaler.update()
@@ -120,7 +120,8 @@ def train_step(args, curriculum, model, xs, ys, optimizer, ctx, scaler, add_inpu
 def train_loop(args, model, curriculum, device):
     """Method for training loop from configuration."""
     return train_without_config(
-        model, curriculum, lr=args.training.learning_rate, task_name=args.training.task_name,
+        model, curriculum, lr=args.training.learning_rate,
+        add_inputs_embeds=args.training.add_inputs_embeds, task_name=args.training.task_name,
         batch_size=args.training.batch_size, n_loop_window=args.training.n_loop_window,
         model_n_dims=args.model.n_dims, train_steps=args.training.train_steps,
         family=args.model.family, experiment_name=args.wandb.name,
@@ -205,9 +206,9 @@ def train_without_config(model,
         real_task = task_sampler()
         xs, ys = real_task.xs.float(), real_task.ys.float()
 
-        loss, output, total_norm, grad_norm_dict = train_step(curriculum, model, xs, ys, optimizer, ctx, scaler)
-        loss, output, total_norm, grad_norm_dict = train_step(curriculum.n_loops, model, xs, ys, optimizer, ctx, scaler,
-                                                              n_loop_window, family=family)
+        #loss, output, total_norm, grad_norm_dict = train_step(curriculum, model, xs, ys, optimizer, ctx, scaler)
+        loss, output, total_norm, grad_norm_dict = train_step(curriculum, model, xs, ys, optimizer, ctx, scaler,
+                                                              add_inputs_embeds, family=family, use_ctx=use_ctx, n_loop_window=n_loop_window)
 
         # EVALUATION ======================================
         point_wise_tags = list(range(curriculum.n_points))  # [0, 1, 2, ..., n-1]
