@@ -110,22 +110,22 @@ def main(args, device):
     args, model, optimizer, curriculum, state_path, starting_step = load_pretrained_model(
         args, model, optimizer, curriculum, device)
 
-    if args.training.use_fixed_dataset:
-        from main_utils import gen_dataloader
-        task_sampler = get_task_sampler(
-            task_name=args.training.task_name,
-            batch_size=args.training.batch_size,
-            n_points=curriculum.n_points,
-            n_dims=args.model.n_dims,
-            n_dims_truncated=curriculum.n_dims_truncated,
-            device=device,
-            sparsity=args.training.sparsity,
-        )
-        train_loader = gen_dataloader(task_sampler, args.training.train_size,
-                                      args.training.batch_size)
-        train_iter = iter(train_loader)
-        test_loader = gen_dataloader(task_sampler, args.training.test_size,
-                                     args.training.batch_size)
+    # if args.training.use_fixed_dataset:
+    #     from main_utils import gen_dataloader
+    #     task_sampler = get_task_sampler(
+    #         task_name=args.training.task_name,
+    #         batch_size=args.training.batch_size,
+    #         n_points=curriculum.n_points,
+    #         n_dims=args.model.n_dims,
+    #         n_dims_truncated=curriculum.n_dims_truncated,
+    #         device=device,
+    #         sparsity=args.training.sparsity,
+    #     )
+    #     train_loader = gen_dataloader(task_sampler, args.training.train_size,
+    #                                   args.training.batch_size)
+    #     train_iter = iter(train_loader)
+    #     test_loader = gen_dataloader(task_sampler, args.training.test_size,
+    #                                  args.training.batch_size)
 
     pbar = tqdm(range(starting_step, args.training.train_steps))
     for i in pbar:
@@ -149,32 +149,33 @@ def main(args, device):
             real_task = task_sampler()
             xs, ys = real_task.xs.float(), real_task.ys.float()
 
-        loss, output, total_norm, grad_norm_dict = train_step(args, curriculum, model, xs, ys, optimizer, ctx, scaler)
+        loss, output, total_norm, grad_norm_dict = train_step(
+            args, curriculum, model, xs, ys, optimizer, ctx, scaler)
         train_loss = loss
 
         # EVALUATION ======================================
         point_wise_tags = list(range(curriculum.n_points))  # [0, 1, 2, ..., n-1]
         if i % args.wandb.log_every_steps == 0:
             point_wise_loss = (output - ys).square().mean(dim=0)  # [n,]
-            if args.training.use_fixed_dataset:
-                # eval
-                with torch.no_grad():
-                    for batch in test_loader:
-                        xs, ys = batch['x'].to(device), batch['y'].to(device)
-                        if args.model.family in ['gpt2']:
-                            output = model(xs, ys)  # [B,]
-                        elif args.model.family in ['gpt2_loop']:
-                            n_loops = curriculum.n_loops  # K
-                            y_pred_list = model(xs, ys, 0, n_loops)
-                            output = y_pred_list[-1]  # [B, n]
-                        else:
-                            raise NotImplementedError
-                        point_wise_loss = (output - ys).square().mean(dim=0)
-                        loss = point_wise_loss.mean()
+            # if args.training.use_fixed_dataset:
+            #     # eval
+            #     with torch.no_grad():
+            #         for batch in test_loader:
+            #             xs, ys = batch['x'].to(device), batch['y'].to(device)
+            #             if args.model.family in ['gpt2']:
+            #                 output = model(xs, ys)  # [B,]
+            #             elif args.model.family in ['gpt2_loop']:
+            #                 n_loops = curriculum.n_loops  # K
+            #                 y_pred_list = model(xs, ys, 0, n_loops)
+            #                 output = y_pred_list[-1]  # [B, n]
+            #             else:
+            #                 raise NotImplementedError
+            #             point_wise_loss = (output - ys).square().mean(dim=0)
+            #             loss = point_wise_loss.mean()
             wandb.log(
                 {
+                    "scaled_loss": loss.item() / curriculum.n_dims_truncated,
                     "overall_loss": loss,
-                    "overall_train_loss": train_loss,
                     "loop_times": curriculum.n_loops,
                     "grad_norm/layerwise": grad_norm_dict,
                     "grad_norm": total_norm,
