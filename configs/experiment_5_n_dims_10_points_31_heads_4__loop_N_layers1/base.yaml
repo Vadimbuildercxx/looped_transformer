@@ -10,7 +10,7 @@ model:
     family: gpt2
     n_embd: 256
     n_layer: 12
-    n_head: 8
+    n_head: 4
     n_dims: 10
     n_positions: 101
 
