@@ -72,7 +72,7 @@ def train_step(args, curriculum, model, xs, ys, optimizer, ctx, scaler):
     return loss.detach(), y_pred.detach(), total_norm, norm_dict
 
 
-def main(args, model, device):
+def main(args, in_model, device):
     # TORCH 2.0 ZONE ###############################
     torch.set_float32_matmul_precision('highest')
     torch.backends.cuda.matmul.allow_tf32 = True  # allow tf32 on matmul
@@ -95,7 +95,7 @@ def main(args, model, device):
     )
 
     torch.manual_seed(args.training.seed)
-    # model = build_model(args.model)
+    model = build_model(args.model)
     # model = torch.compile(model)
 
     model.to(device)
@@ -107,8 +107,8 @@ def main(args, model, device):
     curriculum = Curriculum(args.training.curriculum)
 
     # Here the model load the pretrained model
-    args, model, optimizer, curriculum, state_path, starting_step = load_pretrained_model(
-         args, model, optimizer, curriculum, device)
+    #args, model, optimizer, curriculum, state_path, starting_step = load_pretrained_model(
+    #     args, model, optimizer, curriculum, device)
 
     # if args.training.use_fixed_dataset:
     #     from main_utils import gen_dataloader
