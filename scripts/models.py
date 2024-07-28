@@ -239,13 +239,18 @@ class TransformerModelLoopedLastNTokens(TransformerModelLooped):
 
     def get_last_n_tokens(self, x: torch.Tensor, n: int) -> torch.Tensor:
         # Take last n tokens from input of format [B, 2n, d]
+        assert x.shape[1] - n * self.freq > 0
         if self.loop_func == 'z=f(x+z)':
+            x_mask = torch.zeros((x.shape[0], x.shape[1] - n * self.freq, x.shape[2])).cuda()
             x[:, :-n * self.freq, :] = 0
         elif self.loop_func == 'z=f(x*z)':
+            x_mask = torch.ones((x.shape[0], x.shape[1] - n * self.freq, x.shape[2])).cuda()
             x[:, :-n * self.freq, :] = 1
         else:
             raise NotImplementedError
-        return x
+
+        x_n = x[:, (n - 1) * self.freq:, :]
+        return torch.cat([x_mask, x_n], dim=1)
 
 
 if __name__ == '__main__':
