@@ -4,7 +4,7 @@ n_gpu=0
 # Linear Regression  ###################################################################################################
 b=30
 T=15
-#python scripts/train.py --config configs/base_loop.yaml \
+#python scripts/train.py --config configs/base_loop_b_5.yaml \
 #    --model.n_layer 1 \
 #    --training.curriculum.loops.start $T \
 #    --training.curriculum.loops.end $b \
@@ -15,7 +15,7 @@ T=15
 # Sparse Linear Regression  ############################################################################################
 b=20
 T=10
-#python scripts/train.py --config configs/sparse_LR/base_loop.yaml \
+#python scripts/train.py --config configs/sparse_LR/base_loop_b_5.yaml \
 #    --model.n_layer 1 \
 #    --training.curriculum.loops.start $T \
 #    --training.curriculum.loops.end $b \
@@ -26,7 +26,7 @@ T=10
 # Decision Tree ########################################################################################################
 b=70
 T=15
-#python scripts/train.py --config configs/decision_tree/base_loop.yaml \
+#python scripts/train.py --config configs/decision_tree/base_loop_b_5.yaml \
 #    --model.n_layer 1 \
 #    --training.curriculum.loops.start $T \
 #    --training.curriculum.loops.end $b \
@@ -37,7 +37,7 @@ T=15
 # ReLU2NN  #############################################################################################################
 b=12
 T=5
-#python scripts/train.py --config configs/relu_2nn_regression/base_loop.yaml \
+#python scripts/train.py --config configs/relu_2nn_regression/base_loop_b_5.yaml \
 #    --model.n_layer 1 \
 #    --training.curriculum.loops.start $T \
 #    --training.curriculum.loops.end $b \
