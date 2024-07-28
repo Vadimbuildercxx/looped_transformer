@@ -241,7 +241,7 @@ class TransformerModelLoopedLastNTokens(TransformerModelLooped):
         # Take last n tokens from input of format [B, 2n, d]
         if self.loop_func == 'z=f(x+z)':
             x[:, :-n * self.freq, :] = 0
-        if self.loop_func == 'z=f(x*z)':
+        elif self.loop_func == 'z=f(x*z)':
             x[:, :-n * self.freq, :] = 1
         else:
             raise NotImplementedError
