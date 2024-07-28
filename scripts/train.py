@@ -177,7 +177,8 @@ def train_without_config(model,
             resume=True,
         )
 
-    torch.manual_seed(seed)
+    if seed is not None:
+        torch.manual_seed(seed)
     # model = torch.compile(model)
     model.to(device)
     model.train()
