@@ -242,14 +242,12 @@ class TransformerModelLoopedLastNTokens(TransformerModelLooped):
         assert x.shape[1] - n * self.freq > 0
         if self.loop_func == 'z=f(x+z)':
             x_mask = torch.zeros((x.shape[0], x.shape[1] - n * self.freq, x.shape[2])).cuda()
-            x[:, :-n * self.freq, :] = 0
         elif self.loop_func == 'z=f(x*z)':
             x_mask = torch.ones((x.shape[0], x.shape[1] - n * self.freq, x.shape[2])).cuda()
-            x[:, :-n * self.freq, :] = 1
         else:
             raise NotImplementedError
 
-        x_n = x[:, (n - 1) * self.freq:, :]
+        x_n = x[:, -n * self.freq:, :]
         return torch.cat([x_mask, x_n], dim=1)
 
 
