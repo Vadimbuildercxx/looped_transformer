@@ -24,6 +24,15 @@ def build_model(conf):
             loop_func=conf.loop_func,
             pred_type=conf.pred_type,
         )
+    elif conf.family == 'gpt2_lastNtokens':
+        model = TransformerModelLoopedLastNTokens(
+            n_dims=conf.n_dims,
+            n_positions=conf.n_positions,
+            n_embd=conf.n_embd,
+            n_layer=conf.n_layer,
+            n_head=conf.n_head,
+            n=conf.last_n_tokens,
+        )
     elif conf.family == 'gpt2_tying':
         model = TransformerModelTying(
             n_dims=conf.n_dims,
@@ -208,12 +217,12 @@ class TransformerModelLooped(TransformerModel):
         return pred_list
 
 
-class TransformerModelLoopedLastNTokens(TransformerModel):
+class TransformerModelLoopedLastNTokens(TransformerModelLooped):
     def __init__(self, n_dims, n_positions, n, n_embd=128,
                  n_layer=12, n_head=4, loop_func='z=f(x+z)',
                  pred_type='regression'):
 
-        super(TransformerModelLooped, self).__init__(
+        super(TransformerModelLoopedLastNTokens, self).__init__(
             n_dims, n_positions, n_embd, n_layer, n_head, pred_type)
         self.loop_func = loop_func
         self.n = n
@@ -229,44 +238,38 @@ class TransformerModelLoopedLastNTokens(TransformerModel):
         return f_output
 
     def get_last_n_tokens(self, x: torch.Tensor, n: int) -> torch.Tensor:
-        x[:, :, :-n] = 0
+        # Take last n tokens from input of format [B, 2n, d]
+        x[:, :-n * self.freq, :] = 0
         return x
 
-    def forward(self, xs, ys, n_loop_start, n_loops):
-        """
-        :param xs: [B, n, d]
-        :param ys: [B, n]
-        :param n_loop_start: int
-        :param n_loops: int
-        :return:
-        """
-        B, n, d_in = xs.shape
-        zs = self._combine(xs, ys)  # [B, n, d_in], [B, n], [B, n] -> [B, 2n, d_in + 1]
-        embeds = self._read_in(zs)  # [B, 2n, d_in + 1] -> [B, 2n, d]
-        if self.loop_func in ['z=f(x+z)']:
-            output = torch.zeros_like(embeds)  # also of shape [B, 2n, d]
-        elif self.loop_func in ['z=f(x*z)']:
-            output = torch.ones_like(embeds)  # also of shape [B, 2n, d]
-        else:
-            raise NotImplementedError("Currently we only support loop function z=f(x+z) or z=f(x*z).")
 
-        pred_list = []
-        for idx in range(n_loops):
-            if idx < n_loop_start:  # this will save memory when n_loops large.
-                with torch.no_grad():
-                    output = self.f(output, embeds)
-            else:
-                output = self.f(output, embeds)
-                prediction = self._read_out(output)  # [B, 2n, d] -> [B, 2n, 1]
-                if self._pred_type == 'regression':
-                    y = prediction[:, self.ind::self.freq, 0]
-                elif self._pred_type == 'classification':
-                    y = prediction[:, self.ind::self.freq]
-                else:
-                    raise NotImplementedError
-                pred_list.append(y)
-            if not self.print_flag:
-                print(idx)
-                self.print_flag = True
+if __name__ == '__main__':
+    from train import get_task_sampler
+    transformer_model = TransformerModelLoopedLastNTokens(
+        n_dims=2,
+        n_positions=101,
+        n = 10,
+        n_embd=4,
+        n_layer=1,
+        n_head=2,
+        pred_type="regression",
+    ).cuda()
+    task_sampler = get_task_sampler(
+        task_name="linear_regression",
+        batch_size=1,
+        n_points=3,
+        n_dims=2,
+        n_dims_truncated=3,
+        device="cuda"
+    )
 
-        return pred_list
+    real_task = task_sampler()
+    xs, ys = real_task.xs.float(), real_task.ys.float()
+    n_loops = 3  # K
+    n_loop_window = 20
+
+    horizon_start = max(0, n_loops - n_loop_window)
+    ## forward pass
+    out = transformer_model(xs, ys, horizon_start, n_loops)
+    B, n, d_in = xs.shape
+    zs = transformer_model._combine(xs, ys)  # [B, n, d_in], [B, n], [B, n] -> [B, 2n, d_in + 1]

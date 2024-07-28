@@ -184,7 +184,7 @@ def train_without_config(model,
 
     optimizer = torch.optim.Adam(
         model.parameters(), lr=lr, weight_decay=weight_decay)
-    scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
+    scaler = torch.amp.GradScaler(enabled=(dtype == 'float16'))
 
     # Here the model load the pretrained model
     # args, model, optimizer, curriculum, state_path, starting_step = load_pretrained_model(
@@ -274,5 +274,4 @@ if __name__ == "__main__":
     builded_model = build_model(args.model)
 
     curriculum = Curriculum(args.training.curriculum)
-    ####
     train_loop(args, builded_model, curriculum, device, do_wandb_log=True)

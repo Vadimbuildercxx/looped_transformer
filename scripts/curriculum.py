@@ -41,7 +41,7 @@ class CurriculumSimple:
                  points_schedule: list,
                  loops_schedule: list):
 
-        """schedule in format [update_every_steps, end_dims, increment step]"""
+        """schedule in format [update every n steps, end of schedule range, increment step]"""
         self.n_dims_truncated = dims_start
         self.n_points = points_start
         self.n_loops = loops_start
