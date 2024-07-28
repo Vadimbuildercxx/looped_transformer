@@ -27,7 +27,7 @@ model_schema = {
     "n_layer": merge(tinteger, required),
     "n_head": merge(tinteger, required),
     "pred_type": merge(tstring, default("regression")),
-    "last_n_tokens": merge(tinteger, default(None)),
+    "last_n_tokens": merge(tinteger, nullable, default(None)),
     "pretrained_path": merge(tstring, nullable, default(None)),
     "loop_func": merge(tstring, default("z=f(x+z)"), allowed(
         ["z=f(x+z)", "z=f(x*z)"])),
@@ -47,7 +47,7 @@ curriculum_schema = {
 }
 
 training_schema = {
-    "seed": merge(tinteger, default(42)),
+    "seed": merge(tinteger, nullable, default(42)),
     "task_name": merge(tstring, required),
     "use_fixed_dataset": merge(tboolean, default(False)),
     "train_size": merge(tinteger, default(0)),
