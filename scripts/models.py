@@ -239,7 +239,12 @@ class TransformerModelLoopedLastNTokens(TransformerModelLooped):
 
     def get_last_n_tokens(self, x: torch.Tensor, n: int) -> torch.Tensor:
         # Take last n tokens from input of format [B, 2n, d]
-        x[:, :-n * self.freq, :] = 0
+        if self.loop_func == 'z=f(x+z)':
+            x[:, :-n * self.freq, :] = 0
+        if self.loop_func == 'z=f(x*z)':
+            x[:, :-n * self.freq, :] = 1
+        else:
+            raise NotImplementedError
         return x
 
 
