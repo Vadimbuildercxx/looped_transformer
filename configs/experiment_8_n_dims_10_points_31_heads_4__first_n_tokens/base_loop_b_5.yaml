@@ -5,7 +5,7 @@ wandb:
 
 gpu:
     cuda: True
-    n_gpu: 0
+
 model:
     family: gpt2_loop
     n_embd: 256

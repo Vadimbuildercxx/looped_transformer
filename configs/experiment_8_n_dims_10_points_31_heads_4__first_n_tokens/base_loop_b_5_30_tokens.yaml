@@ -1,18 +1,19 @@
 wandb:
     project: Lets_Loop2
-    notes: looped tf 1 layer b = 5
+    notes: looped tf 1 layer b = 5 take first 30 tokens
     log_every_steps: 100
 
 gpu:
     cuda: True
-    n_gpu: 0
+
 model:
-    family: gpt2_loop
+    family: gpt2_firstNtokens
     n_embd: 256
     n_layer: 1
     n_head: 4
     n_dims: 10
     n_positions: 101
+    first_n_tokens: 30
 
 training:
     seed: 42

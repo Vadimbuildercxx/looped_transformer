@@ -33,6 +33,15 @@ def build_model(conf):
             n_head=conf.n_head,
             n=conf.last_n_tokens,
         )
+    elif conf.family == 'gpt2_firstNtokens':
+        model = TransformerModelLoopedFirstNTokens(
+            n_dims=conf.n_dims,
+            n_positions=conf.n_positions,
+            n_embd=conf.n_embd,
+            n_layer=conf.n_layer,
+            n_head=conf.n_head,
+            n=conf.first_n_tokens,
+        )
     elif conf.family == 'gpt2_tying':
         model = TransformerModelTying(
             n_dims=conf.n_dims,
