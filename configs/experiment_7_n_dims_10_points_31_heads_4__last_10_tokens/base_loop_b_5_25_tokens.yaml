@@ -1,6 +1,6 @@
 wandb:
     project: Lets_Loop2
-    notes: looped tf 1 layer b = 5 take last 15 tokens
+    notes: looped tf 1 layer b = 5 take last 25 tokens
     log_every_steps: 100
 
 gpu:
@@ -13,7 +13,7 @@ model:
     n_head: 4
     n_dims: 10
     n_positions: 101
-    last_n_tokens: 15
+    last_n_tokens: 25
 
 training:
     seed: 42

@@ -16,7 +16,7 @@ model:
     last_n_tokens: 10
 
 training:
-    seed: null
+    seed: 42
     batch_size: 64
     task_name: linear_regression
     learning_rate: 0.0001
