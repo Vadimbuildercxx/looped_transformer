@@ -239,7 +239,7 @@ class TransformerModelLoopedLastNTokens(TransformerModelLooped):
 
     def get_last_n_tokens(self, x: torch.Tensor, n: int) -> torch.Tensor:
         # Take last n tokens from input of format [B, 2n, d]
-        assert x.shape[1] - n * self.freq > 0
+        assert x.shape[1] - n * self.freq >= 0
         if self.loop_func == 'z=f(x+z)':
             x_mask = torch.zeros((x.shape[0], x.shape[1] - n * self.freq, x.shape[2])).cuda()
         elif self.loop_func == 'z=f(x*z)':
@@ -250,13 +250,46 @@ class TransformerModelLoopedLastNTokens(TransformerModelLooped):
         x_n = x[:, -n * self.freq:, :]
         return torch.cat([x_mask, x_n], dim=1)
 
+class TransformerModelLoopedFirstNTokens(TransformerModelLooped):
+    def __init__(self, n_dims, n_positions, n, n_embd=128,
+                 n_layer=12, n_head=4, loop_func='z=f(x+z)',
+                 pred_type='regression'):
+
+        super(TransformerModelLoopedLastNTokens, self).__init__(
+            n_dims, n_positions, n_embd, n_layer, n_head, pred_type)
+        self.loop_func = loop_func
+        self.n = n
+
+    def f(self, output, embeds):
+        output = self.get_first_n_tokens(output, self.n)
+        if self.loop_func == 'z=f(x+z)':
+            f_output = self._backbone(inputs_embeds=output + embeds)  # [B, 2n + 1, d]
+        elif self.loop_func == 'z=f(x*z)':
+            f_output = self._backbone(inputs_embeds=output * embeds)  # [B, 2n + 1, d]
+        else:
+            raise NotImplementedError
+        return f_output
+
+    def get_first_n_tokens(self, x: torch.Tensor, n: int) -> torch.Tensor:
+        # Take last n tokens from input of format [B, 2n, d]
+        assert x.shape[1] - n * self.freq > 0
+        if self.loop_func == 'z=f(x+z)':
+            x_mask = torch.zeros((x.shape[0], x.shape[1] - n * self.freq, x.shape[2])).cuda()
+        elif self.loop_func == 'z=f(x*z)':
+            x_mask = torch.ones((x.shape[0], x.shape[1] - n * self.freq, x.shape[2])).cuda()
+        else:
+            raise NotImplementedError
+
+        x_n = x[:, :n * self.freq, :]
+        return torch.cat([x_n, x_mask], dim=1)
+
 
 if __name__ == '__main__':
     from train import get_task_sampler
     transformer_model = TransformerModelLoopedLastNTokens(
         n_dims=2,
         n_positions=101,
-        n = 10,
+        n=10,
         n_embd=4,
         n_layer=1,
         n_head=2,
