@@ -2,7 +2,6 @@ import os
 import datetime
 
 from quinine import QuinineArgumentParser
-from tqdm import tqdm
 import torch
 import yaml
 
@@ -10,7 +9,7 @@ from curriculum import Curriculum
 from schema import schema
 from models import build_model
 from tasks import get_task_sampler
-from main_utils import init_device, get_run_id, load_pretrained_model
+from main_utils import init_device, get_run_id
 # from eval import get_run_metrics
 from main_utils import gen_dataloader
 from train_core import train_without_config
