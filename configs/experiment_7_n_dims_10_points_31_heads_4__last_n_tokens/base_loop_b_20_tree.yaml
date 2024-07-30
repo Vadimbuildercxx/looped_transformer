@@ -11,7 +11,7 @@ model:
     family: gpt2_lastNtokens
     n_embd: 256
     n_layer: 1
-    n_head: 4
+    n_head: 8
     n_dims: 10
     n_positions: 101
     last_n_tokens: null
@@ -32,8 +32,8 @@ training:
             inc: 0
             interval: 10000
         points:
-            start: 31
-            end: 31
+            start: 61
+            end: 61
             inc: 0
             interval: 10000
         loops:
