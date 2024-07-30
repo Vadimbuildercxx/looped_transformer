@@ -1,17 +1,16 @@
 wandb:
     project: Lets_Loop2
-    notes: looped tf 1 layer b = 10
+    notes: looped tf 1 layer b = 5
     log_every_steps: 100
 
 gpu:
     cuda: True
     n_gpu: 0
-
 model:
     family: gpt2_lastNtokens
     n_embd: 256
     n_layer: 1
-    n_head: 8
+    n_head: 4
     n_dims: 10
     n_positions: 101
     last_n_tokens: null
@@ -20,7 +19,7 @@ model:
 training:
     seed: null
     batch_size: 64
-    task_name: decision_tree
+    task_name: linear_regression
     learning_rate: 0.0001
     weight_decay: 0.0
     train_steps: 20000
@@ -33,16 +32,16 @@ training:
             inc: 0
             interval: 10000
         points:
-            start: 61
-            end: 61
+            start: 31
+            end: 31
             inc: 0
             interval: 10000
         loops:
-            start: 10
-            end: 10
+            start: 5
+            end: 5
             inc: 0
             interval: 500
-    n_loop_window: 20
+    n_loop_window: 10
 
 out_dir: ./results2/linear_regression_loop
 debug_mode: False

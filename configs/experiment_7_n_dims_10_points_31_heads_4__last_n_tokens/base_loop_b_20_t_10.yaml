@@ -1,6 +1,6 @@
 wandb:
     project: Lets_Loop2
-    notes: looped tf 1 layer b = 30
+    notes: looped tf 1 layer b = 20
     log_every_steps: 100
 
 gpu:
@@ -37,11 +37,11 @@ training:
             inc: 0
             interval: 10000
         loops:
-            start: 30
-            end: 30
+            start: 20
+            end: 20
             inc: 0
             interval: 500
-    n_loop_window: 20
+    n_loop_window: 10
 
 out_dir: ./results2/linear_regression_loop
 debug_mode: False
