@@ -295,10 +295,11 @@ class TransformerModelLoopedFirstNTokens(TransformerModelLooped):
 
 if __name__ == '__main__':
     from train import get_task_sampler
-    transformer_model = TransformerModelLoopedLastNTokens(
-        n_dims=2,
+    #transformer_model = TransformerModelLoopedLastNTokens(
+    transformer_model = TransformerModelLooped(
+        n_dims=3,
         n_positions=101,
-        n=10,
+        #n=3,
         n_embd=4,
         n_layer=1,
         n_head=2,
@@ -307,8 +308,8 @@ if __name__ == '__main__':
     task_sampler = get_task_sampler(
         task_name="linear_regression",
         batch_size=1,
-        n_points=3,
-        n_dims=2,
+        n_points=5,
+        n_dims=3,
         n_dims_truncated=3,
         device="cuda"
     )
