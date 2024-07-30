@@ -121,7 +121,7 @@ def main(args, device):
     dtype = 'float16'  # 'bfloat16', 'float32'
     ptdtype = {'float32': torch.float32, 'bfloat16': torch.bfloat16, 'float16': torch.float16}[dtype]
     if args.training.use_ctx:
-        ctx = torch.amp.autocast(device_type='cuda', dtype=ptdtype, cache_enabled=False)
+        ctx = torch.cuda.amp.autocast(device_type='cuda', dtype=ptdtype, cache_enabled=False)
     else:
         ctx = None
     ################################################

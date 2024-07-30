@@ -130,15 +130,15 @@ def train_without_config(model,
                          sparsity=False, save_every_steps=1000, device="cuda",):
     # TORCH 2.0 ZONE ###############################
     metrics = []
-    #if hasattr(torch, "set_float32_matmul_precision"):
-    #    torch.set_float32_matmul_precision('highest')
+    if hasattr(torch, "set_float32_matmul_precision"):
+        torch.set_float32_matmul_precision('highest')
 
     torch.backends.cuda.matmul.allow_tf32 = True  # allow tf32 on matmul
     torch.backends.cudnn.allow_tf32 = True  # allow tf32 on cudnn
     dtype = 'float16'  # 'bfloat16', 'float32'
     ptdtype = {'float32': torch.float32, 'bfloat16': torch.bfloat16, 'float16': torch.float16}[dtype]
     if use_ctx:
-        ctx = torch.amp.autocast(device_type='cuda', dtype=ptdtype, cache_enabled=False)
+        ctx = torch.cuda.amp.autocast(device_type='cuda', dtype=ptdtype, cache_enabled=False)
     else:
         ctx = None
     ################################################
@@ -162,7 +162,7 @@ def train_without_config(model,
 
     optimizer = torch.optim.Adam(
         model.parameters(), lr=lr, weight_decay=weight_decay)
-    scaler = torch.amp.GradScaler(enabled=(dtype == 'float16'))
+    scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
 
     # Here the model load the pretrained model
     # args, model, optimizer, curriculum, state_path, starting_step = load_pretrained_model(
