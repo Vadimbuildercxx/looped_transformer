@@ -130,7 +130,6 @@ def train_without_config(model,
                          sparsity=False, save_every_steps=1000, device="cuda",):
     # TORCH 2.0 ZONE ###############################
     metrics = []
-
     if hasattr(torch, "set_float32_matmul_precision"):
         torch.set_float32_matmul_precision('highest')
 
