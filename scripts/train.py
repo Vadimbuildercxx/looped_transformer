@@ -13,6 +13,7 @@ from tasks import get_task_sampler
 from main_utils import init_device, get_run_id, load_pretrained_model
 # from eval import get_run_metrics
 from main_utils import gen_dataloader
+from train_core import train_without_config
 
 import wandb
 
@@ -132,121 +133,121 @@ def train_loop(args, model, curriculum, device, do_wandb_log):
         sparsity=args.training.sparsity, save_every_steps=args.training.save_every_steps,
         device=device)
 
-
-def train_without_config(model,
-                         curriculum,
-                         lr=0.0001,
-                         add_inputs_embeds = False,
-                         task_name="linear_regression",
-                         batch_size=64,
-                         n_loop_window=20,
-                         model_n_dims=10,
-                         train_steps=10000,
-                         family="gpt2",
-                         experiment_name="linear_regression_gpt_2",
-                         out_dir="./results2/linear_regression_baseline",
-                         do_wandb_log=False,
-                         log_every_steps=100,
-                         use_ctx=False,
-                         project_name="base_project",
-                         project_notes="",
-                         seed=42,
-                         weight_decay=0.0,
-                         sparsity=False, save_every_steps=1000, device="cuda",):
-    # TORCH 2.0 ZONE ###############################
-    metrics = []
-    torch.set_float32_matmul_precision('highest')
-    torch.backends.cuda.matmul.allow_tf32 = True  # allow tf32 on matmul
-    torch.backends.cudnn.allow_tf32 = True  # allow tf32 on cudnn
-    dtype = 'float16'  # 'bfloat16', 'float32'
-    ptdtype = {'float32': torch.float32, 'bfloat16': torch.bfloat16, 'float16': torch.float16}[dtype]
-    if use_ctx:
-        ctx = torch.amp.autocast(device_type='cuda', dtype=ptdtype, cache_enabled=False)
-    else:
-        ctx = None
-    ################################################
-
-    if do_wandb_log:
-        wandb.init(
-            dir=out_dir,
-            project=project_name,
-            #config=args.__dict__,
-            notes=project_notes,
-            name=experiment_name,
-            #mode="disabled" if args.debug_mode else "online",
-            resume=True,
-        )
-
-    if seed is not None:
-        torch.manual_seed(seed)
-    # model = torch.compile(model)
-    model.to(device)
-    model.train()
-
-    optimizer = torch.optim.Adam(
-        model.parameters(), lr=lr, weight_decay=weight_decay)
-    scaler = torch.amp.GradScaler(enabled=(dtype == 'float16'))
-
-    # Here the model load the pretrained model
-    # args, model, optimizer, curriculum, state_path, starting_step = load_pretrained_model(
-    #     args, model, optimizer, curriculum, device)
-
-    pbar = tqdm(range(0, train_steps))
-    for i in pbar:
-        task_sampler = get_task_sampler(
-            task_name=task_name,
-            batch_size=batch_size,
-            n_points=curriculum.n_points,
-            n_dims=model_n_dims,
-            n_dims_truncated=curriculum.n_dims_truncated,
-            device=device,
-            sparsity=sparsity,
-        )
-
-        real_task = task_sampler()
-        xs, ys = real_task.xs.float(), real_task.ys.float()
-
-        loss, output, total_norm, grad_norm_dict = train_step(curriculum, model, xs, ys, optimizer, ctx, scaler,
-                                                              add_inputs_embeds, family=family, use_ctx=use_ctx, n_loop_window=n_loop_window)
-
-        # EVALUATION ======================================
-        point_wise_tags = list(range(curriculum.n_points))  # [0, 1, 2, ..., n-1]
-        if i % log_every_steps == 0:
-            point_wise_loss = (output - ys).square().mean(dim=0)  # [n,]
-            epoch_metrics_dict = {
-                "scaled_loss": loss.item() / curriculum.n_dims_truncated,
-                "overall_loss": loss.item(),
-                "loop_times": curriculum.n_loops,
-                "grad_norm/layerwise": grad_norm_dict,
-                "grad_norm": total_norm,
-                "pointwise/loss": dict(
-                    zip(point_wise_tags, point_wise_loss.detach().cpu().numpy())
-                ),
-                "n_points": curriculum.n_points,
-                "n_dims": curriculum.n_dims_truncated,
-                "lr": optimizer.param_groups[0]['lr'],
-            }
-
-            if do_wandb_log:
-                wandb.log(epoch_metrics_dict, step=i)
-
-            # Save metrics to wandb and out metrics array
-            epoch_metrics_dict["step"] = i
-            metrics.append(epoch_metrics_dict)
-
-        curriculum.update()
-
-        pbar.set_description(f"loss {loss}")
-        if i % save_every_steps == 0:
-            training_state = {
-                "model_state_dict": model.state_dict(),
-                "optimizer_state_dict": optimizer.state_dict(),
-                "train_step": i,
-            }
-            if not os.path.exists(out_dir):
-                os.makedirs(out_dir)
-            torch.save(training_state, os.path.join(out_dir, f"model_{i}.pt"))
-    return metrics
+#
+# def train_without_config(model,
+#                          curriculum,
+#                          lr=0.0001,
+#                          add_inputs_embeds = False,
+#                          task_name="linear_regression",
+#                          batch_size=64,
+#                          n_loop_window=20,
+#                          model_n_dims=10,
+#                          train_steps=10000,
+#                          family="gpt2",
+#                          experiment_name="linear_regression_gpt_2",
+#                          out_dir="./results2/linear_regression_baseline",
+#                          do_wandb_log=False,
+#                          log_every_steps=100,
+#                          use_ctx=False,
+#                          project_name="base_project",
+#                          project_notes="",
+#                          seed=42,
+#                          weight_decay=0.0,
+#                          sparsity=False, save_every_steps=1000, device="cuda",):
+#     # TORCH 2.0 ZONE ###############################
+#     metrics = []
+#     torch.set_float32_matmul_precision('highest')
+#     torch.backends.cuda.matmul.allow_tf32 = True  # allow tf32 on matmul
+#     torch.backends.cudnn.allow_tf32 = True  # allow tf32 on cudnn
+#     dtype = 'float16'  # 'bfloat16', 'float32'
+#     ptdtype = {'float32': torch.float32, 'bfloat16': torch.bfloat16, 'float16': torch.float16}[dtype]
+#     if use_ctx:
+#         ctx = torch.amp.autocast(device_type='cuda', dtype=ptdtype, cache_enabled=False)
+#     else:
+#         ctx = None
+#     ################################################
+#
+#     if do_wandb_log:
+#         wandb.init(
+#             dir=out_dir,
+#             project=project_name,
+#             #config=args.__dict__,
+#             notes=project_notes,
+#             name=experiment_name,
+#             #mode="disabled" if args.debug_mode else "online",
+#             resume=True,
+#         )
+#
+#     if seed is not None:
+#         torch.manual_seed(seed)
+#     # model = torch.compile(model)
+#     model.to(device)
+#     model.train()
+#
+#     optimizer = torch.optim.Adam(
+#         model.parameters(), lr=lr, weight_decay=weight_decay)
+#     scaler = torch.amp.GradScaler(enabled=(dtype == 'float16'))
+#
+#     # Here the model load the pretrained model
+#     # args, model, optimizer, curriculum, state_path, starting_step = load_pretrained_model(
+#     #     args, model, optimizer, curriculum, device)
+#
+#     pbar = tqdm(range(0, train_steps))
+#     for i in pbar:
+#         task_sampler = get_task_sampler(
+#             task_name=task_name,
+#             batch_size=batch_size,
+#             n_points=curriculum.n_points,
+#             n_dims=model_n_dims,
+#             n_dims_truncated=curriculum.n_dims_truncated,
+#             device=device,
+#             sparsity=sparsity,
+#         )
+#
+#         real_task = task_sampler()
+#         xs, ys = real_task.xs.float(), real_task.ys.float()
+#
+#         loss, output, total_norm, grad_norm_dict = train_step(curriculum, model, xs, ys, optimizer, ctx, scaler,
+#                                                               add_inputs_embeds, family=family, use_ctx=use_ctx, n_loop_window=n_loop_window)
+#
+#         # EVALUATION ======================================
+#         point_wise_tags = list(range(curriculum.n_points))  # [0, 1, 2, ..., n-1]
+#         if i % log_every_steps == 0:
+#             point_wise_loss = (output - ys).square().mean(dim=0)  # [n,]
+#             epoch_metrics_dict = {
+#                 "scaled_loss": loss.item() / curriculum.n_dims_truncated,
+#                 "overall_loss": loss.item(),
+#                 "loop_times": curriculum.n_loops,
+#                 "grad_norm/layerwise": grad_norm_dict,
+#                 "grad_norm": total_norm,
+#                 "pointwise/loss": dict(
+#                     zip(point_wise_tags, point_wise_loss.detach().cpu().numpy())
+#                 ),
+#                 "n_points": curriculum.n_points,
+#                 "n_dims": curriculum.n_dims_truncated,
+#                 "lr": optimizer.param_groups[0]['lr'],
+#             }
+#
+#             if do_wandb_log:
+#                 wandb.log(epoch_metrics_dict, step=i)
+#
+#             # Save metrics to wandb and out metrics array
+#             epoch_metrics_dict["step"] = i
+#             metrics.append(epoch_metrics_dict)
+#
+#         curriculum.update()
+#
+#         pbar.set_description(f"loss {loss}")
+#         if i % save_every_steps == 0:
+#             training_state = {
+#                 "model_state_dict": model.state_dict(),
+#                 "optimizer_state_dict": optimizer.state_dict(),
+#                 "train_step": i,
+#             }
+#             if not os.path.exists(out_dir):
+#                 os.makedirs(out_dir)
+#             torch.save(training_state, os.path.join(out_dir, f"model_{i}.pt"))
+#     return metrics
 
 if __name__ == "__main__":
     parser = QuinineArgumentParser(schema=schema)

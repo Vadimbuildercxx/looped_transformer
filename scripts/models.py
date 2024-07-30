@@ -237,7 +237,8 @@ class TransformerModelLoopedLastNTokens(TransformerModelLooped):
         self.n = n
 
     def f(self, output, embeds):
-        output = self.get_last_n_tokens(output, self.n)
+        if not self.training:
+            output = self.get_last_n_tokens(output, self.n)
         if self.loop_func == 'z=f(x+z)':
             f_output = self._backbone(inputs_embeds=output + embeds)  # [B, 2n + 1, d]
         elif self.loop_func == 'z=f(x*z)':
