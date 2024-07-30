@@ -7,15 +7,17 @@ gpu:
     cuda: True
     n_gpu: 0
 model:
-    family: gpt2_loop
+    family: gpt2_lastNtokens
     n_embd: 256
     n_layer: 1
     n_head: 4
     n_dims: 10
     n_positions: 101
+    last_n_tokens: null
+
 
 training:
-    seed: 42
+    seed: null
     batch_size: 64
     task_name: linear_regression
     learning_rate: 0.0001

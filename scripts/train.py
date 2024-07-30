@@ -14,8 +14,6 @@ from main_utils import init_device, get_run_id
 from main_utils import gen_dataloader
 from train_core import train_without_config
 
-import wandb
-
 torch.backends.cudnn.benchmark = True
 
 
