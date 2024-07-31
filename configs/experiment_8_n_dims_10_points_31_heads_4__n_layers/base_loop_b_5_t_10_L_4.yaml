@@ -1,22 +1,23 @@
 wandb:
     project: Lets_Loop2
-    notes: looped tf 1 layer b = 5 take first 15 tokens
+    notes: looped tf 1 layer b = 5 L = 4
     log_every_steps: 100
 
 gpu:
     cuda: True
-
+    n_gpu: 0
 model:
-    family: gpt2_firstNtokens
+    family: gpt2_lastNtokens
     n_embd: 256
-    n_layer: 1
+    n_layer: 4
     n_head: 4
     n_dims: 10
     n_positions: 101
-    first_n_tokens: 15
+    last_n_tokens: null
+
 
 training:
-    seed: 42
+    seed: null
     batch_size: 64
     task_name: linear_regression
     learning_rate: 0.0001
@@ -40,7 +41,7 @@ training:
             end: 5
             inc: 0
             interval: 500
-    n_loop_window: 20
+    n_loop_window: 10
 
 out_dir: ./results2/linear_regression_loop
 debug_mode: False

@@ -16,8 +16,7 @@ from dataclasses import dataclass
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
-from mambapy import mamba
-mamba.MambaBlock
+from mambapy.mamba import Mamba, MambaConfig
 
 # @torch.jit.script # good to enable when not using torch.compile, disable when using (our default)
 def new_gelu(x):
@@ -112,8 +111,15 @@ class Block(nn.Module):
 
     def __init__(self, config):
         super().__init__()
+        mamba_config = MambaConfig()
+        mamba_config.d_model =   config.block_size
+        mamba_config.n_layers =      config.n_layer
+        mamba_config.n_embd =       config.n_embd
+        mamba_config.dropout =      config.dropout
+        mamba_config.bias =         config.bias
+
         self.ln_1 = LayerNorm(config.n_embd, bias=config.bias)
-        self.attn = CausalSelfAttention(config)
+        self.attn = Mamba() # CausalSelfAttention(config)
         self.ln_2 = LayerNorm(config.n_embd, bias=config.bias)
         self.mlp = MLP(config)
 
@@ -134,7 +140,7 @@ class GPT2Config:
     bias: bool = True  # True: bias in Linears and LayerNorms, like GPT-2. False: a bit better and faster
 
 
-class GPT2Model(nn.Module):
+class MambaModel(nn.Module):
 
     def __init__(self, config):
         super().__init__()
