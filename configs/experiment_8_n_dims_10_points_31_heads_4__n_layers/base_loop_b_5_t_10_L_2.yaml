@@ -7,7 +7,7 @@ gpu:
     cuda: True
     n_gpu: 0
 model:
-    family: gpt2_lastNtokens
+    family: gpt2_loop
     n_embd: 256
     n_layer: 2
     n_head: 4
