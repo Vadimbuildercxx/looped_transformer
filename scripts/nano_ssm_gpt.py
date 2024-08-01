@@ -61,7 +61,7 @@ class Block(nn.Module):
         super().__init__()
 
         self.ln_1 = LayerNorm(config.n_embd, bias=config.bias)
-        self.ssm = SSM(in_features=config.n_embd, dt_rank=config.dt_rank, dim_inner=config.n_embd, d_state=config.d_state)
+        self.ssm = SSM(in_features=config.n_embd, dt_rank=config.dt_rank, dim_inner=config.dim_inner, d_state=config.d_state)
         self.ln_2 = LayerNorm(config.n_embd, bias=config.bias)
         self.mlp = MLP(config)
 
@@ -77,6 +77,7 @@ class SSMConfig:
     vocab_size: int = 50304  # GPT-2 vocab_size of 50257, padded up to nearest multiple of 64 for efficiency
     n_layer: int = 12
     dt_rank: int = 16
+    dim_inner: int = 256
     d_state: int = 64
     n_embd: int = 768
     dropout: float = 0.0

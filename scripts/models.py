@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from nano_gpt import GPT2Model, GPT2Config, LayerNorm
-from ssm_models import SelectiveScanModelLooped
+from ssm_models import SelectiveScanModelLooped, SelectiveScanModel
 
 MAX_NUM_CLASS = 2  # for openML classification task
 
@@ -21,8 +21,15 @@ def build_model(conf):
             n_positions=conf.n_positions,
             n_embd=conf.n_embd,
             n_layer=conf.n_layer,
-            n_head=conf.n_head,
             loop_func=conf.loop_func,
+            pred_type=conf.pred_type,
+        )
+    elif conf.family == 'ssm_gpt2':
+        model = SelectiveScanModel(
+            n_dims=conf.n_dims,
+            n_positions=conf.n_positions,
+            n_embd=conf.n_embd,
+            n_layer=conf.n_layer,
             pred_type=conf.pred_type,
         )
     elif conf.family == 'gpt2_loop':

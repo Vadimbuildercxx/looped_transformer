@@ -41,7 +41,7 @@ def validate_model(
     with torch.no_grad():
         for batch in val_loader:
             xs, ys = batch['x'].to(device), batch['y'].to(device)
-            if family == 'gpt2':
+            if family == ['gpt2', "ssm_gpt2"]:
                 output = model(xs, ys)  # [B,]
             elif family in ['gpt2_loop', "ssm_gpt2_loop"]:
                 n_loops = n_loops  # curriculum.n_loops  # K

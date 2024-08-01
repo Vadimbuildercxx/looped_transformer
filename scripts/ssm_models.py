@@ -8,7 +8,7 @@ MAX_NUM_CLASS = 2  # for openML classification task
 
 
 class SelectiveScanModel(nn.Module):
-    def __init__(self, n_dims, n_positions, n_embd=128, n_layer=12, n_head=4, pred_type='regression', backbone_architecture='gpt2'):
+    def __init__(self, n_dims, n_positions, n_embd=128, n_layer=12, pred_type='regression'):
         """
         backbone_architecture: allowed gpt2 or ssm_gpt2
         """
@@ -19,7 +19,6 @@ class SelectiveScanModel(nn.Module):
         configuration = SSMConfig()
         configuration.block_size = self.freq * n_positions + 1
         configuration.n_layer = n_layer
-        configuration.n_head = n_head
         configuration.n_embd = n_embd
         configuration.dropout = 0.0
         configuration.bias = True
@@ -90,10 +89,10 @@ class SelectiveScanModel(nn.Module):
 
 class SelectiveScanModelLooped(SelectiveScanModel):
     def __init__(
-            self, n_dims, n_positions, n_embd=128, n_layer=12, n_head=4, loop_func='z=f(x+z)', pred_type='regression'):
+            self, n_dims, n_positions, n_embd=128, n_layer=12, loop_func='z=f(x+z)', pred_type='regression'):
 
         super(SelectiveScanModelLooped, self).__init__(
-            n_dims, n_positions, n_embd, n_layer, n_head, pred_type)
+            n_dims, n_positions, n_embd, n_layer, pred_type)
         self.loop_func = loop_func
 
     def f(self, output, embeds):
