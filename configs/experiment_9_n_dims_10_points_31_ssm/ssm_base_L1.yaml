@@ -31,8 +31,8 @@ training:
             inc: 0
             interval: 10000
         points:
-            start: 31
-            end: 31
+            start: 41
+            end: 41
             inc: 0
             interval: 10000
         loops:
