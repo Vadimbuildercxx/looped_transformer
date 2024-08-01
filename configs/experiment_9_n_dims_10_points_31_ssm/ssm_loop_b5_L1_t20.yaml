@@ -1,6 +1,6 @@
 wandb:
     project: Lets_Loop2
-    notes: looped ssm 1 layer b = 5 L = 1
+    notes: looped ssm 1 layer b = 1 L = 1
     log_every_steps: 100
 
 gpu:
@@ -10,7 +10,7 @@ model:
     family: ssm_gpt2_loop
     n_embd: 256
     n_layer: 1
-    dt_rank: 16 # selective scan
+    dt_rank: 32 # selective scan
     d_state: 64 # selective scan
     n_dims: 10
     n_positions: 101
