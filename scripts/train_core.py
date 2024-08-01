@@ -68,7 +68,7 @@ def calculate_gradient_norm(model):
 
 
 def train_step(curriculum, model, xs, ys, optimizer, ctx, scaler, add_inputs_embeds, use_ctx, n_loop_window, family):
-    if family in ['gpt2', 'gpt2_tying']:
+    if family in ['gpt2', 'gpt2_tying', "ssm_gpt2"]:
         if ctx is not None:
             with ctx:
                 y_pred = model(xs, ys, add_inputs_embeds=add_inputs_embeds)  # [B, n]
