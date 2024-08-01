@@ -9,7 +9,7 @@ gpu:
 model:
     family: ssm_gpt2_loop
     n_embd: 256
-    n_layer: 2
+    n_layer: 1
     dt_rank: 16 # selective scan
     d_state: 64 # selective scan
     n_dims: 10
