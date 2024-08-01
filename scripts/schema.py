@@ -26,9 +26,9 @@ model_schema = {
     "n_dims": merge(tinteger, required),  # latent dimension
     "n_embd": merge(tinteger, required),
     "n_layer": merge(tinteger, required),
-    "n_head": merge(tinteger, default(None)),
-    "dt_rank": merge(tinteger, default(None)),
-    "d_state": merge(tinteger, default(None)),
+    "n_head": merge(tinteger, nullable, default(None)),
+    "dt_rank": merge(tinteger, nullable, default(None)),
+    "d_state": merge(tinteger, nullable, default(None)),
     "pred_type": merge(tstring, default("regression")),
     "last_n_tokens": merge(tinteger, nullable, default(None)),
     "first_n_tokens": merge(tinteger, nullable, default(None)),
