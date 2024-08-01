@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from nano_gpt import GPT2Model, GPT2Config, LayerNorm
+from ssm_models import SelectiveScanModelLooped
 
 MAX_NUM_CLASS = 2  # for openML classification task
 
@@ -12,6 +13,16 @@ def build_model(conf):
             n_embd=conf.n_embd,
             n_layer=conf.n_layer,
             n_head=conf.n_head,
+            pred_type=conf.pred_type,
+        )
+    elif conf.family == 'ssm_gpt2_loop':
+        model = SelectiveScanModelLooped(
+            n_dims=conf.n_dims,
+            n_positions=conf.n_positions,
+            n_embd=conf.n_embd,
+            n_layer=conf.n_layer,
+            n_head=conf.n_head,
+            loop_func=conf.loop_func,
             pred_type=conf.pred_type,
         )
     elif conf.family == 'gpt2_loop':
@@ -57,7 +68,10 @@ def build_model(conf):
 
 
 class TransformerModel(nn.Module):
-    def __init__(self, n_dims, n_positions, n_embd=128, n_layer=12, n_head=4, pred_type='regression'):
+    def __init__(self, n_dims, n_positions, n_embd=128, n_layer=12, n_head=4, pred_type='regression', backbone_architecture='gpt2'):
+        """
+        backbone_architecture: allowed gpt2 or ssm_gpt2
+        """
 
         super(TransformerModel, self).__init__()
         self.freq = 2
@@ -79,7 +93,13 @@ class TransformerModel(nn.Module):
         self._pred_type = pred_type
 
         self._read_in = nn.Linear(n_dims, n_embd)
-        self._backbone = GPT2Model(self.configuration)
+        if backbone_architecture == 'gpt2':
+            self._backbone = GPT2Model(self.configuration)
+        elif backbone_architecture == 'ssm_gpt2_loop':
+            self._backbone = GPT2Model(self.configuration)
+        else:
+            raise NotImplementedError
+
         if self._pred_type == 'regression':
             self._read_out = nn.Linear(n_embd, 1)
         elif self._pred_type == 'classification':
@@ -293,36 +313,3 @@ class TransformerModelLoopedFirstNTokens(TransformerModelLooped):
 
         x_n = x[:, :n * self.freq, :]
         return torch.cat([x_n, x_mask], dim=1)
-
-
-if __name__ == '__main__':
-    from train import get_task_sampler
-    #transformer_model = TransformerModelLoopedLastNTokens(
-    transformer_model = TransformerModelLooped(
-        n_dims=3,
-        n_positions=101,
-        #n=3,
-        n_embd=4,
-        n_layer=1,
-        n_head=2,
-        pred_type="regression",
-    ).cuda()
-    task_sampler = get_task_sampler(
-        task_name="linear_regression",
-        batch_size=1,
-        n_points=5,
-        n_dims=3,
-        n_dims_truncated=3,
-        device="cuda"
-    )
-
-    real_task = task_sampler()
-    xs, ys = real_task.xs.float(), real_task.ys.float()
-    n_loops = 3  # K
-    n_loop_window = 20
-
-    horizon_start = max(0, n_loops - n_loop_window)
-    ## forward pass
-    out = transformer_model(xs, ys, horizon_start, n_loops)
-    B, n, d_in = xs.shape
-    zs = transformer_model._combine(xs, ys)  # [B, n, d_in], [B, n], [B, n] -> [B, 2n, d_in + 1]

@@ -43,7 +43,7 @@ def validate_model(
             xs, ys = batch['x'].to(device), batch['y'].to(device)
             if family == 'gpt2':
                 output = model(xs, ys)  # [B,]
-            elif family == 'gpt2_loop':
+            elif family in ['gpt2_loop', "ssm_gpt2_loop"]:
                 n_loops = n_loops  # curriculum.n_loops  # K
                 y_pred_list = model(xs, ys, 0, n_loops)
                 output = y_pred_list[-1]  # [B, n]
@@ -78,7 +78,7 @@ def train_step(curriculum, model, xs, ys, optimizer, ctx, scaler, add_inputs_emb
             y_pred = model(xs, ys, add_inputs_embeds=add_inputs_embeds)  # [B, n]
             # list of [B, n], length K + 1, get rid of the 0-th one
             loss = (ys - y_pred).square().mean()  # auto on both K and n (number of in context samples)
-    elif family in ['gpt2_loop', "gpt2_lastNtokens", "gpt2_firstNtokens"]:
+    elif family in ['gpt2_loop', "gpt2_lastNtokens", "gpt2_firstNtokens", "ssm_gpt2_loop"]:
         n_loops = curriculum.n_loops  # K
         if ctx is not None:
             with ctx:
