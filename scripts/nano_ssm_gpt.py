@@ -67,9 +67,8 @@ class Block(nn.Module):
         self.softplus = nn.Softplus()
 
     def forward(self, x):
-        x = self.ln_1(x)
-        #x = F.silu(x)
-        x = self.softplus(x)
+        # x = self.ln_1(x)
+        x = F.silu(x)
         x = x + self.ssm(x)
         x = x + self.mlp(self.ln_2(x))
         return x
