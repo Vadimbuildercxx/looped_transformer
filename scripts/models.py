@@ -75,7 +75,7 @@ def build_model(conf):
 
 
 class TransformerModel(nn.Module):
-    def __init__(self, n_dims, n_positions, n_embd=128, n_layer=12, n_head=4, pred_type='regression', backbone_architecture='gpt2'):
+    def __init__(self, n_dims, n_positions, n_embd=128, n_layer=12, n_head=4, pred_type='regression'):
         """
         backbone_architecture: allowed gpt2 or ssm_gpt2
         """
@@ -100,17 +100,14 @@ class TransformerModel(nn.Module):
         self._pred_type = pred_type
 
         self._read_in = nn.Linear(n_dims, n_embd)
-        if backbone_architecture == 'gpt2':
-            self._backbone = GPT2Model(self.configuration)
-        elif backbone_architecture == 'ssm_gpt2_loop':
-            self._backbone = GPT2Model(self.configuration)
-        else:
-            raise NotImplementedError
+        self._backbone = GPT2Model(self.configuration)
 
         if self._pred_type == 'regression':
             self._read_out = nn.Linear(n_embd, 1)
         elif self._pred_type == 'classification':
             self._read_out = nn.Linear(n_embd, MAX_NUM_CLASS)  # NOTE: hard-code
+        else:
+            raise NotImplementedError
 
         self.print_flag = False
 
@@ -197,12 +194,15 @@ class TransformerModelTying(TransformerModel):
 
 
 class TransformerModelLooped(TransformerModel):
-    def __init__(
-            self, n_dims, n_positions, n_embd=128, n_layer=12, n_head=4, loop_func='z=f(x+z)', pred_type='regression'):
+    def __init__(self, n_dims, n_positions,
+                 n_embd=128, n_layer=12, n_head=4,
+                 loop_func='z=f(x+z)', pred_type='regression',
+                 default_n_loops=None):
 
         super(TransformerModelLooped, self).__init__(
             n_dims, n_positions, n_embd, n_layer, n_head, pred_type)
         self.loop_func = loop_func
+        self.default_n_loops = default_n_loops
 
     def f(self, output, embeds):
         if self.loop_func == 'z=f(x+z)':
@@ -213,7 +213,7 @@ class TransformerModelLooped(TransformerModel):
             raise NotImplementedError
         return f_output
 
-    def forward(self, xs, ys, n_loop_start, n_loops):
+    def forward(self, xs, ys, n_loop_start=None, n_loops=None):
         """
         :param xs: [B, n, d]
         :param ys: [B, n]
@@ -221,6 +221,12 @@ class TransformerModelLooped(TransformerModel):
         :param n_loops: int
         :return:
         """
+        if n_loop_start is None and n_loops is None and self.default_n_loops is None:
+            raise AttributeError
+        elif n_loop_start is None and n_loops is None and self.default_n_loops is not None:
+            n_loop_start = 0
+            n_loops = self.default_n_loops
+
         B, n, d_in = xs.shape
         zs = self._combine(xs, ys)  # [B, n, d_in], [B, n], [B, n] -> [B, 2n, d_in + 1]
         embeds = self._read_in(zs)  # [B, 2n, d_in + 1] -> [B, 2n, d]
@@ -252,6 +258,64 @@ class TransformerModelLooped(TransformerModel):
 
         return pred_list
 
+
+# Wrapper class for plotting loss surface
+class TransformerModelLoopedPyHessianWrapper(TransformerModelLooped):
+    def __init__(self, n_dims, n_positions,
+                 n_embd=128, n_layer=12, n_head=4,
+                 loop_func='z=f(x+z)', pred_type='regression',
+                 default_n_loops=None):
+
+        super(TransformerModelLoopedPyHessianWrapper, self).__init__(
+            n_dims, n_positions,
+            n_embd, n_layer, n_head,
+            loop_func, pred_type, default_n_loops)
+
+    def forward(self, xs_ys, ys=None, n_loop_start=None, n_loops=None):
+        """
+        :param xs: [B, n, d]
+        :param ys: [B, n]
+        :param n_loop_start: int
+        :param n_loops: int
+        :return:
+        """
+        if ys is None:
+            ## Placed because of not implemented flash attention gradient in pytorch
+            with torch.backends.cuda.sdp_kernel(enable_flash=False, enable_math=True, enable_mem_efficient=False):
+                xs, ys = xs_ys[:, :, :-1], xs_ys[:, :, -1]
+                pred_list = super().forward(xs, ys, n_loop_start=0, n_loops=self.default_n_loops )
+        else:
+            pred_list = super().forward(xs_ys, ys, n_loop_start=n_loop_start, n_loops=n_loops )
+
+        return pred_list
+
+
+# Wrapper class for plotting loss surface
+class TransformerModelPyHessianWrapper(TransformerModel):
+    def __init__(self, n_dims, n_positions,
+                 n_embd=128, n_layer=12, n_head=4, pred_type='regression',):
+
+        super(TransformerModelPyHessianWrapper, self).__init__(
+            n_dims, n_positions,
+            n_embd, n_layer, n_head,
+            pred_type=pred_type)
+
+    def forward(self, xs_ys, ys=None, add_inputs_embeds=False):
+        """
+        :param xs_ys: [B, n, d]
+        :param ys: [B, n]
+        :param add_inputs_embeds: bool
+        :return:
+        """
+        if ys is None:
+            # Placed because of not implemented flash attention gradient in pytorch
+            with torch.backends.cuda.sdp_kernel(enable_flash=False, enable_math=True, enable_mem_efficient=False):
+                xs, ys = xs_ys[:, :, :-1], xs_ys[:, :, -1]
+                pred_y = super().forward(xs, ys, add_inputs_embeds)
+        else:
+            pred_y = super().forward(xs_ys, ys, add_inputs_embeds)
+
+        return pred_y
 
 class TransformerModelLoopedLastNTokens(TransformerModelLooped):
     def __init__(self, n_dims, n_positions, n, n_embd=128,

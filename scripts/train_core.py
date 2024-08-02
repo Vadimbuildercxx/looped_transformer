@@ -127,7 +127,8 @@ def train_without_config(model,
                          project_notes="",
                          seed=42,
                          weight_decay=0.0,
-                         sparsity=False, save_every_steps=1000, device="cuda",):
+                         sparsity=False, save_every_steps=1000, device="cuda",
+                         callback=None):
     # TORCH 2.0 ZONE ###############################
     metrics = []
     if hasattr(torch, "set_float32_matmul_precision"):
@@ -210,6 +211,9 @@ def train_without_config(model,
             # Save metrics to wandb and out metrics array
             epoch_metrics_dict["step"] = i
             metrics.append(epoch_metrics_dict)
+
+            if callback:
+                callback(model, loss.item() / curriculum.n_dims_truncated)
 
         curriculum.update()
 
