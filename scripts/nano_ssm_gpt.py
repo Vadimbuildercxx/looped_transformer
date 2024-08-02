@@ -100,7 +100,7 @@ class SSMModel(nn.Module):
         self.transformer = nn.ModuleDict(dict(
             wpe=nn.Embedding(config.block_size, config.n_embd),
             drop=nn.Dropout(config.dropout),
-            h=nn.ModuleList([MambaBlock(dim=config.n_embd, depth=config.n_layer) for _ in range(config.n_layer)]),
+            h=nn.ModuleList([MambaBlock(dim=config.n_embd, depth=config.n_layer).cuda() for _ in range(config.n_layer)]),
             ln_f=LayerNorm(config.n_embd, bias=config.bias),
         ))
 
