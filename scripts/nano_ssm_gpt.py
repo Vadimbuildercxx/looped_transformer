@@ -64,9 +64,12 @@ class Block(nn.Module):
         self.ssm = SSM(in_features=config.n_embd, dt_rank=config.dt_rank, dim_inner=config.dim_inner, d_state=config.d_state)
         self.ln_2 = LayerNorm(config.n_embd, bias=config.bias)
         self.mlp = MLP(config)
+        self.softplus = nn.Softplus()
 
     def forward(self, x):
-        x = x + self.ssm(self.ln_1(x))
+        x = self.ln_1(x)
+        x = self.softplus(x)
+        x = x + self.ssm(x)
         x = x + self.mlp(self.ln_2(x))
         return x
 
