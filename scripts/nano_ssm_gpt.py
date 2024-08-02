@@ -60,16 +60,17 @@ class Block(nn.Module):
     def __init__(self, config):
         super().__init__()
 
-        self.ln_1 = LayerNorm(config.n_embd, bias=config.bias)
+        #self.ln_1 = LayerNorm(config.n_embd, bias=config.bias)
         self.ssm = SSM(in_features=config.n_embd, dt_rank=config.dt_rank, dim_inner=config.dim_inner, d_state=config.d_state)
         self.ln_2 = LayerNorm(config.n_embd, bias=config.bias)
         self.mlp = MLP(config)
+        self.silu = nn.SiLU()
 
     def forward(self, x):
         # x = self.ln_1(x)
-        x = F.silu(x)
+        x = self.silu(x)
         x = self.ssm(x)
-        x = F.silu(x)
+        x = self.silu(x)
         #x = x * F.silu(x)
         x = x + self.mlp(self.ln_2(x))
         return x
