@@ -54,6 +54,9 @@ class ParamList():
         new_params = [p / k for p in self.params]
         return ParamList(new_params)
 
+    def __getitem__(self, i):
+        return self.params[i]
+
 
 class LossLandscapePlotting():
     def __init__(
@@ -63,8 +66,9 @@ class LossLandscapePlotting():
             criterion, 
             data, 
             parameters_history, 
-            loss_history = None,
-            theta0 = None
+            loss_history=None,
+            theta0=None,
+            mean_theta0=False
             ):
         
         # Model for which we want to make loss landscape plot, and
@@ -82,7 +86,13 @@ class LossLandscapePlotting():
         # 'Basic' parameters, used for calculation of eigenvecs
         # of model's Hessian, and as center point for plotting.
         # Usually - model parameters after training.
-        self.theta0 = parameters_history[-1] if theta0 is None else theta0
+        if mean_theta0:
+            self.theta0 = parameters_history[0]
+            for i in range(1, len(parameters_history)):
+                self.theta0 = self.theta0 + parameters_history[i]
+            self.theta0 = self.theta0 / len(parameters_history)
+        else:
+            self.theta0 = parameters_history[-1] if theta0 is None else theta0
 
         # Note that eigenvectors may differ from each iteration of 
         # landscape plotting, and this behavior is not understood

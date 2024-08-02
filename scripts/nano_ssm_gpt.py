@@ -16,7 +16,7 @@ from dataclasses import dataclass
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
-from zeta.nn import SSM
+from zeta.nn import SSM, MambaBlock
 
 # @torch.jit.script # good to enable when not using torch.compile, disable when using (our default)
 def new_gelu(x):
@@ -100,7 +100,7 @@ class SSMModel(nn.Module):
         self.transformer = nn.ModuleDict(dict(
             wpe=nn.Embedding(config.block_size, config.n_embd),
             drop=nn.Dropout(config.dropout),
-            h=nn.ModuleList([Block(config) for _ in range(config.n_layer)]),
+            h=MambaBlock(dim=config.n_embd, depth=config.n_layer),
             ln_f=LayerNorm(config.n_embd, bias=config.bias),
         ))
 
