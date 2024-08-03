@@ -74,7 +74,7 @@ class Mamba(nn.Module):
         assert config.vocab_size is not None
         assert config.block_size is not None
 
-        #self.norm_f = RMSNorm(config.n_embd)
+        self.norm_f = RMSNorm(config.n_embd)
         self.mamba_layers = nn.ModuleList(
             [
                 torch.nn.Sequential(
