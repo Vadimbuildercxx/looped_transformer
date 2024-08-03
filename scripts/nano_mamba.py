@@ -110,7 +110,7 @@ class Mamba(nn.Module):
     def forward(
             self,
             x: torch.Tensor,
-            context: torch.Tensor = None,
+            context: torch.Tensor = None)  # [B, 2n, d]
     ):
         """
         Args:
