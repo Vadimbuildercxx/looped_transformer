@@ -16,7 +16,7 @@ from dataclasses import dataclass
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
-from zeta.nn import SSM, MambaBlock
+from mamba_block import MambaBlock
 
 # @torch.jit.script # good to enable when not using torch.compile, disable when using (our default)
 def new_gelu(x):
@@ -55,25 +55,25 @@ class MLP(nn.Module):
         return x
 
 
-class Block(nn.Module):
-
-    def __init__(self, config):
-        super().__init__()
-
-        #self.ln_1 = LayerNorm(config.n_embd, bias=config.bias)
-        self.ssm = SSM(in_features=config.n_embd, dt_rank=config.dt_rank, dim_inner=config.dim_inner, d_state=config.d_state)
-        self.ln_2 = LayerNorm(config.n_embd, bias=config.bias)
-        self.mlp = MLP(config)
-        self.silu = nn.SiLU()
-
-    def forward(self, x):
-        # x = self.ln_1(x)
-        x = self.silu(x)
-        x = self.ssm(x)
-        x = self.silu(x)
-        #x = x * F.silu(x)
-        x = x + self.mlp(self.ln_2(x))
-        return x
+# class Block(nn.Module):
+#
+#     def __init__(self, config):
+#         super().__init__()
+#
+#         #self.ln_1 = LayerNorm(config.n_embd, bias=config.bias)
+#         self.ssm = SSM(in_features=config.n_embd, dt_rank=config.dt_rank, dim_inner=config.dim_inner, d_state=config.d_state)
+#         self.ln_2 = LayerNorm(config.n_embd, bias=config.bias)
+#         self.mlp = MLP(config)
+#         self.silu = nn.SiLU()
+#
+#     def forward(self, x):
+#         # x = self.ln_1(x)
+#         x = self.silu(x)
+#         x = self.ssm(x)
+#         x = self.silu(x)
+#         #x = x * F.silu(x)
+#         x = x + self.mlp(self.ln_2(x))
+#         return x
 
 
 @dataclass
@@ -100,7 +100,7 @@ class SSMModel(nn.Module):
         self.transformer = nn.ModuleDict(dict(
             wpe=nn.Embedding(config.block_size, config.n_embd),
             drop=nn.Dropout(config.dropout),
-            h=nn.ModuleList([MambaBlock(dim=config.n_embd, depth=config.n_layer).cuda() for _ in range(config.n_layer)]),
+            h=nn.ModuleList([MambaBlock(dim=config.n_embd, depth=config.n_layer) for _ in range(config.n_layer)]),
             ln_f=LayerNorm(config.n_embd, bias=config.bias),
         ))
 
