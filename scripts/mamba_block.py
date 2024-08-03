@@ -151,7 +151,7 @@ class MambaBlock(nn.Module):
         D = self.D.float()
 
         # x_dbl = rearrange(x, "b d l -> b l d")
-        x_dbl = self.x_proj(x_dbl)  # (b, l, dt_rank + 2*n)
+        x_dbl = self.x_proj(x)  # (b, l, dt_rank + 2*n)
 
         (delta, B, C) = x_dbl.split(
             split_size=[self.dt_rank, n, n], dim=-1
