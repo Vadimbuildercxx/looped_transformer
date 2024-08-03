@@ -60,7 +60,7 @@ class Mamba(nn.Module):
         self.layers = nn.ModuleList([ResidualBlock(config) for _ in range(config.n_layer)])
         self.norm_f = RMSNorm(config.n_embd)
 
-    def forward(self, input_ids):
+    def forward(self, x):
         """
         Args:
             input_ids (long tensor): shape (b, l)    (See Glossary at top for definitions of b, l, d_in, n...)
@@ -72,15 +72,13 @@ class Mamba(nn.Module):
             class MambaLMHeadModel, https://github.com/state-spaces/mamba/blob/main/mamba_ssm/models/mixer_seq_simple.py#L173
 
         """
-        x = self.embedding(input_ids)
 
         for layer in self.layers:
             x = layer(x)
 
         x = self.norm_f(x)
-        logits = self.lm_head(x)
 
-        return logits
+        return x
 
 
 class ResidualBlock(nn.Module):
