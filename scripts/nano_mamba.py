@@ -161,10 +161,10 @@ class RMSNorm(nn.Module):
 
     """
 
-    def __init__(self, dim, groups=1):
+    def __init__(self, dim):
         super().__init__()
         self.scale = dim**-0.5
-        self.gamma = nn.Parameter(torch.ones(groups, dim, 1))
+        self.gamma = nn.Parameter(torch.ones(dim))
 
     def forward(self, x):
         """Forward method implementation."""
