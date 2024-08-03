@@ -9,17 +9,8 @@ from dataclasses import dataclass
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
-#from mamba_block import MambaBlock
+
 from einops import rearrange, repeat, einsum
-
-# @torch.jit.script # good to enable when not using torch.compile, disable when using (our default)
-def new_gelu(x):
-    """
-    Implementation of the GELU activation function currently in Google BERT repo (identical to OpenAI GPT).
-    Reference: Gaussian Error Linear Units (GELU) paper: https://arxiv.org/abs/1606.08415
-    """
-    return 0.5 * x * (1.0 + torch.tanh(math.sqrt(2.0 / math.pi) * (x + 0.044715 * torch.pow(x, 3.0))))
-
 
 class LayerNorm(nn.Module):
     """ LayerNorm but with an optional bias. PyTorch doesn't support simply bias=False """
@@ -63,7 +54,7 @@ class Mamba(nn.Module):
     def forward(self, x):
         """
         Args:
-            input_ids (long tensor): shape (b, l)    (See Glossary at top for definitions of b, l, d_in, n...)
+            x (float): shape (b, l)    (See Glossary at top for definitions of b, l, d_in, n...)
 
         Returns:
             logits: shape (b, l, vocab_size)
@@ -88,7 +79,6 @@ class ResidualBlock(nn.Module):
         self.config = config
         self.mixer = MambaBlock(config)
         self.norm = RMSNorm(config.n_embd)
-
 
     def forward(self, x):
         """
