@@ -60,9 +60,10 @@ def calculate_gradient_norm(model):
     total_norm = 0.0
     norm_dict = {}
     for n, p in model.named_parameters():
-        param_norm = p.grad.data.norm(2)
-        total_norm += param_norm.item() ** 2
-        norm_dict[n] = param_norm
+        if p.grad is not None:
+            param_norm = p.grad.data.norm(2)
+            total_norm += param_norm.item() ** 2
+            norm_dict[n] = param_norm
     total_norm = total_norm ** (1. / 2)
     return norm_dict, total_norm
 
