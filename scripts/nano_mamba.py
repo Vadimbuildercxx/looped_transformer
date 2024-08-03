@@ -76,7 +76,6 @@ class Mamba(nn.Module):
 
         self.norm_f = RMSNorm(config.n_embd)
         self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=False)
-        self.lm_head.weight = self.embedding.weight
         self.mamba_layers = nn.ModuleList(
             [
                 MambaBlock(
