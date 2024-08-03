@@ -74,11 +74,12 @@ class Mamba(nn.Module):
         assert config.vocab_size is not None
         assert config.block_size is not None
 
-        self.norm_f = RMSNorm(config.n_embd)
+        #self.norm_f = RMSNorm(config.n_embd)
         self.mamba_layers = nn.ModuleList(
             [
-                MambaBlock(
-                    dim=config.n_embd, depth=config.n_layer, d_state=config.d_state, d_conv=config.d_conv
+                torch.nn.Sequential(
+                    MambaBlock(dim=config.n_embd, depth=config.n_layer, d_state=config.d_state, d_conv=config.d_conv),
+                    RMSNorm(config.n_embd)
                 )
                 for _ in range(config.n_layer)
             ]
@@ -109,7 +110,8 @@ class Mamba(nn.Module):
             x = torch.cat([x, projected_img], dim=1)
 
         for layer in self.mamba_layers:
-            x = layer(self.norm_f(x)) + x
+            #x = layer(self.norm_f(x)) + x
+            x = layer(x) + x
 
         x = self.norm_f(x)
 

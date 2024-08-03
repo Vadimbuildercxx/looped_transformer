@@ -18,9 +18,7 @@ class MambaModel(nn.Module):
         configuration.block_size = self.freq * n_positions + 1
         configuration.n_layer = n_layer
         configuration.n_embd = n_embd
-        configuration.dropout = 0.0
         configuration.bias = True
-        configuration.dropout = 0.
         self.configuration = configuration
 
         self.n_positions = n_positions  # n = points in this setting
