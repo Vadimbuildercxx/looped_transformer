@@ -1,22 +1,20 @@
 import torch
 import torch.nn as nn
-from nano_gpt import GPT2Model, GPT2Config, LayerNorm
-from nano_ssm_gpt import SSMModel, SSMConfig
+from nano_mamba import Mamba, MambaConfig
 
 MAX_NUM_CLASS = 2  # for openML classification task
 
 
-
-class SelectiveScanModel(nn.Module):
+class MambaModel(nn.Module):
     def __init__(self, n_dims, n_positions, n_embd=128, n_layer=12, pred_type='regression'):
         """
         backbone_architecture: allowed gpt2 or ssm_gpt2
         """
 
-        super(SelectiveScanModel, self).__init__()
+        super(MambaModel, self).__init__()
         self.freq = 2
         self.ind = 0
-        configuration = SSMConfig()
+        configuration = MambaConfig()
         configuration.block_size = self.freq * n_positions + 1
         configuration.n_layer = n_layer
         configuration.n_embd = n_embd
@@ -32,7 +30,7 @@ class SelectiveScanModel(nn.Module):
         self._pred_type = pred_type
 
         self._read_in = nn.Linear(n_dims, n_embd)
-        self._backbone = SSMModel(self.configuration)
+        self._backbone = Mamba(self.configuration)
 
         if self._pred_type == 'regression':
             self._read_out = nn.Linear(n_embd, 1)
@@ -87,11 +85,11 @@ class SelectiveScanModel(nn.Module):
         return y
 
 
-class SelectiveScanModelLooped(SelectiveScanModel):
+class MambaModelLooped(MambaModel):
     def __init__(
             self, n_dims, n_positions, n_embd=128, n_layer=12, loop_func='z=f(x+z)', pred_type='regression'):
 
-        super(SelectiveScanModelLooped, self).__init__(
+        super(MambaModelLooped, self).__init__(
             n_dims, n_positions, n_embd, n_layer, pred_type)
         self.loop_func = loop_func
 
