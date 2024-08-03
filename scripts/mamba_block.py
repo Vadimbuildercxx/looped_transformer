@@ -7,7 +7,11 @@ from einops import einsum, rearrange, repeat
 from torch import Tensor, nn
 
 """
-Implementation from zetascale library, copied because of error with cuda in original library.
+Implementation from zetascale library, copied because of error with cuda in
+ original library and some code taken from mamba-minimal https://github.com/johnma2006/mamba-minimal.
+This code is much slower than original implementation because missing
+hardware optimization.
+
 """
 
 class MambaBlock(nn.Module):
@@ -198,10 +202,11 @@ class MambaBlock(nn.Module):
         )
 
         # Perform selective scan (see scan_SSM() in The Annotated S4 [2])
+        # This is slow parallel scan version!
         x = torch.zeros((b, d_in, n), device=next(self.parameters()).device)
         ys = []
         for i in range(l):
-            x = deltaA[:, :, i] * x + deltaB_u[:, :, i]
+            x = deltaA[:, i] * x + deltaB_u[:, i]
             y = einsum(x, C[:, i, :], "b d_in n , b n -> b d_in")
             ys.append(y)
         y = torch.stack(ys, dim=2)  # (b d_in l)
