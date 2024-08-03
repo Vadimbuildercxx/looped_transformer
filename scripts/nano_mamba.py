@@ -88,7 +88,7 @@ class Mamba(nn.Module):
         self.mamba_layers = nn.ModuleList(
             [
                 MambaBlock(
-                    dim=config.n_embd, depth=config.depth, d_state=config.d_state, d_conv=config.d_conv
+                    dim=config.n_embd, depth=config.n_layer, d_state=config.d_state, d_conv=config.d_conv
                 )
                 for _ in range(config.n_layer)
             ]
