@@ -39,42 +39,6 @@ class LayerNorm(nn.Module):
         return F.layer_norm(input, self.weight.shape, self.weight, self.bias, 1e-5)
 
 
-class MLP(nn.Module):
-
-    def __init__(self, config):
-        super().__init__()
-        self.c_fc = nn.Linear(config.n_embd, 4 * config.n_embd, bias=config.bias)
-        self.c_proj = nn.Linear(4 * config.n_embd, config.n_embd, bias=config.bias)
-        self.dropout = nn.Dropout(config.dropout)
-
-    def forward(self, x):
-        x = self.c_fc(x)
-        x = new_gelu(x)
-        x = self.c_proj(x)
-        x = self.dropout(x)
-        return x
-
-
-# class Block(nn.Module):
-#
-#     def __init__(self, config):
-#         super().__init__()
-#
-#         #self.ln_1 = LayerNorm(config.n_embd, bias=config.bias)
-#         self.ssm = SSM(in_features=config.n_embd, dt_rank=config.dt_rank, dim_inner=config.dim_inner, d_state=config.d_state)
-#         self.ln_2 = LayerNorm(config.n_embd, bias=config.bias)
-#         self.mlp = MLP(config)
-#         self.silu = nn.SiLU()
-#
-#     def forward(self, x):
-#         # x = self.ln_1(x)
-#         x = self.silu(x)
-#         x = self.ssm(x)
-#         x = self.silu(x)
-#         #x = x * F.silu(x)
-#         x = x + self.mlp(self.ln_2(x))
-#         return x
-
 
 @dataclass
 class SSMConfig:
@@ -83,7 +47,8 @@ class SSMConfig:
     n_layer: int = 12
     dt_rank: int = 16
     dim_inner: int = 256
-    d_state: int = 64
+    d_state: int = 16
+    d_conv: int = 4
     n_embd: int = 768
     dropout: float = 0.0
     bias: bool = True  # True: bias in Linears and LayerNorms, like GPT-2. False: a bit better and faster
@@ -100,7 +65,7 @@ class SSMModel(nn.Module):
         self.transformer = nn.ModuleDict(dict(
             wpe=nn.Embedding(config.block_size, config.n_embd),
             drop=nn.Dropout(config.dropout),
-            h=nn.ModuleList([MambaBlock(dim=config.n_embd, depth=config.n_layer) for _ in range(config.n_layer)]),
+            h=nn.ModuleList([MambaBlock(dim=config.n_embd, d_state=config.d_state, d_conv=config.d_conv) for _ in range(config.n_layer)]),
             ln_f=LayerNorm(config.n_embd, bias=config.bias),
         ))
 

@@ -264,37 +264,24 @@ class LossLandscapePlotting():
         pl.show_grid()
         pl.show()
 
-    def plot_contour(self, trace, ralpha, rbeta, surface, colormap='cividis', k=1, label="loss landscape"):
-
-        # new_trace = []
-        # for point in trace:
-        #     alphaidx = np.abs(point[0] - ralpha).argmin()
-        #     betaidx = np.abs(point[1] - rbeta).argmin()
-        #
-        #     new_trace.append([
-        #         ralpha[alphaidx],
-        #         rbeta[betaidx],
-        #         surface[betaidx, alphaidx]
-        #     ])
-        new_trace = trace #np.array(new_trace)
-
+    def plot_contour(self, ax_in, trace, ralpha, rbeta, surface, colormap='cividis', k=1, label="loss landscape"):
         x, y = np.meshgrid(ralpha, rbeta)
-
 
         coef = np.abs(rbeta.max() - rbeta.min()) / np.abs(surface.max() - surface.min()) * k
 
-        fig, ax = plt.subplots()
-        CS = ax.contour(
+        # fig, ax = plt.subplots()
+        CS = ax_in.contour(
             x,
             y,
             surface,
             cmap=colormap,
             linewidths=0.75)
-        ax.clabel(CS, inline=True, fontsize=10, fmt="%1.2f")
+        ax_in.clabel(CS, inline=True, fontsize=10, fmt="%1.2f")
         normalize = mpl.colors.Normalize(vmin=-coef, vmax=coef)
-        ax.scatter(new_trace[:, 0], new_trace[:, 1], c=new_trace[:, 2], s=4, cmap="cividis",  marker='o', norm=normalize)
-        ax.plot(new_trace[:, 0], new_trace[:, 1])
-        ax.set_title(label)
+        ax_in.scatter(trace[:, 0], trace[:, 1], c=trace[:, 2], s=4, cmap="cividis", marker='o', norm=normalize)
+        ax_in.plot(trace[:, 0], trace[:, 1])
+        ax_in.set_title(label)
 
-        ax.grid()
-        plt.savefig('filename.svg')
+        ax_in.grid()
+        # plt.savefig('filename.svg')
+        return ax_in
