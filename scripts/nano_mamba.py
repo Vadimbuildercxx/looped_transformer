@@ -107,11 +107,7 @@ class Mamba(nn.Module):
         n_params = sum(p.numel() for p in self.parameters())
         return n_params
 
-    def forward(
-            self,
-            x: torch.Tensor,
-            context: torch.Tensor = None)  # [B, 2n, d]
-    ):
+    def forward(self, x: torch.Tensor, context: torch.Tensor = None):
         """
         Args:
             x (long tensor): shape (b, l)    (See Glossary at top for definitions of b, l, d_in, n...)

@@ -3,6 +3,7 @@ wandb:
     notes: looped ssm 1 layer b = 1 L = 1
     log_every_steps: 100
 
+
 gpu:
     cuda: True
     n_gpu: 0
@@ -10,7 +11,7 @@ model:
     family: ssm_gpt2
     n_embd: 256
     n_layer: 1
-    d_state: 64 # selective scan
+    d_state: 32
     n_dims: 10
     n_positions: 101
     last_n_tokens: null
