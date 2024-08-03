@@ -150,7 +150,7 @@ class MambaBlock(nn.Module):
         A = -torch.exp(self.A_log.float())  # shape (d_in, n)
         D = self.D.float()
 
-        x_dbl = rearrange(x, "b d l -> b l d")
+        # x_dbl = rearrange(x, "b d l -> b l d")
         x_dbl = self.x_proj(x_dbl)  # (b, l, dt_rank + 2*n)
 
         (delta, B, C) = x_dbl.split(
@@ -191,14 +191,14 @@ class MambaBlock(nn.Module):
             Note: I refactored some parts out of `selective_scan_ref` out, so the functionality doesn't match exactly.
 
         """
-        (b, d_in, l) = u.shape
+        (b, l, d_in) = u.shape
         n = A.shape[1]
 
         # Discretize continuous parameters (Δ, A, B)  (see Section 2 Equation 4 in the Mamba paper [1])
         # Note that B is parameterized directly
-        deltaA = torch.exp(einsum(delta, A, "b l d_in, d_in n -> b d_in l n"))
+        deltaA = torch.exp(einsum(delta, A, "b l d_in, d_in n -> b l d_in n"))
         deltaB_u = einsum(
-            delta, B, u, "b l d_in, b l n, b d_in l -> b d_in l n"
+            delta, B, u, "b l d_in, b l n, b l d_in -> b l d_in n"
         )
 
         # Perform selective scan (see scan_SSM() in The Annotated S4 [2])
@@ -209,9 +209,8 @@ class MambaBlock(nn.Module):
             x = deltaA[:, i] * x + deltaB_u[:, i]
             y = einsum(x, C[:, i, :], "b d_in n , b n -> b d_in")
             ys.append(y)
-        y = torch.stack(ys, dim=2)  # (b d_in l)
+        y = torch.stack(ys, dim=1)  # (b l d_in)
 
-        if D is not None:
-            y = y + u * rearrange(D, "d_in -> d_in 1")
+        y = y + u * D
 
         return y
