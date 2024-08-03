@@ -110,9 +110,8 @@ class MambaBlock(nn.Module):
         (b, l, d) = x.shape
 
         x_and_res = self.in_proj(x)  # shape (b, l, 2 * d_in)
-        x_and_res = rearrange(x_and_res, "b l x -> b x l")
         (x, res) = x_and_res.split(
-            split_size=[self.dim_inner, self.dim_inner], dim=1
+            split_size=[self.dim_inner, self.dim_inner], dim=-1
         )
 
         x = self.conv1d(x)[:, :, :l]
@@ -122,7 +121,7 @@ class MambaBlock(nn.Module):
 
         y = y * F.silu(res)
 
-        output = self.out_proj(rearrange(y, "b dim l -> b l dim"))
+        output = self.out_proj(y)
 
         return output
 
@@ -150,7 +149,6 @@ class MambaBlock(nn.Module):
         A = -torch.exp(self.A_log.float())  # shape (d_in, n)
         D = self.D.float()
 
-        # x_dbl = rearrange(x, "b d l -> b l d")
         x_dbl = self.x_proj(x)  # (b, l, dt_rank + 2*n)
 
         (delta, B, C) = x_dbl.split(
