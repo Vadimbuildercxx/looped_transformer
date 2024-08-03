@@ -61,7 +61,7 @@ class MambaModel(nn.Module):
 
         return zs
 
-    def forward(self, xs, ys, add_inputs_embeds=False):
+    def forward(self, xs, ys):
         """
         :param xs: [B, n, d]
         :param ys: [B, n]
@@ -69,12 +69,11 @@ class MambaModel(nn.Module):
         """
 
         B, n, d_in = xs.shape
-        zs = self._combine(xs, ys)  # [B, n, d_in], [B, n], [B, n] -> [B, 2n, d_in + 1]
-        embeds = self._read_in(zs)  # [B, 2n, d_in + 1] -> [B, 2n, d]
+        zs = self._combine(xs, ys)  # [B, n, d_in], [B
+        embeds = self._read_in(zs)
 
-        f_output = self._backbone(
-            inputs_embeds=embeds, position_ids=None, rm_pos_embd=False, add_inputs_embeds=add_inputs_embeds)  # [B, 2n, d]
-        prediction = self._read_out(f_output)  # [B, 2n, d] -> [B, 2n, 1]
+        f_output = self._backbone(embeds)
+        prediction = self._read_out(f_output)
         if self._pred_type == 'regression':
             y = prediction[:, self.ind::self.freq, 0]
         elif self._pred_type == 'classification':
