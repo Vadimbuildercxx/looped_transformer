@@ -1,12 +1,5 @@
 """
-Full definition of a GPT Language Model, all of it in this single file.
-References:
-1) the official GPT-2 TensorFlow implementation released by OpenAI:
-https://github.com/openai/gpt-2/blob/master/src/model.py
-2) huggingface/transformers PyTorch implementation:
-https://github.com/huggingface/transformers/blob/main/src/transformers/models/gpt2/modeling_gpt2.py
-
-Reference Nano-GPT: https://github.com/karpathy/nanoGPT/blob/master/model.py
+Mamba implementation from zetascale library with minor changes
 """
 
 import math
@@ -81,7 +74,6 @@ class Mamba(nn.Module):
         assert config.vocab_size is not None
         assert config.block_size is not None
 
-        self.embedding = nn.Embedding(config.vocab_size, config.n_embd)
         self.norm_f = RMSNorm(config.n_embd)
         self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=False)
         self.lm_head.weight = self.embedding.weight
@@ -110,7 +102,7 @@ class Mamba(nn.Module):
     def forward(self, x: torch.Tensor, context: torch.Tensor = None):
         """
         Args:
-            x (long tensor): shape (b, l)    (See Glossary at top for definitions of b, l, d_in, n...)
+            x (float tensor): shape (b, l)    (See Glossary at top for definitions of b, l, d_in, n...)
 
         Returns:
             logits: shape (b, l, vocab_size)
@@ -119,7 +111,6 @@ class Mamba(nn.Module):
             class MambaLMHeadModel, https://github.com/state-spaces/mamba/blob/main/mamba_ssm/models/mixer_seq_simple.py#L173
 
         """
-        x = self.embedding(x)
 
         if exists(context):
             # Project the image
