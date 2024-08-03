@@ -114,7 +114,10 @@ class MambaBlock(nn.Module):
             split_size=[self.dim_inner, self.dim_inner], dim=-1
         )
 
+        x = rearrange(x, 'b l d_in -> b d_in l')
         x = self.conv1d(x)[:, :, :l]
+        x = rearrange(x, 'b d_in l -> b l d_in')
+
         x = F.silu(x)
 
         y = self.ssm(x)
