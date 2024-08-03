@@ -75,7 +75,6 @@ class Mamba(nn.Module):
         assert config.block_size is not None
 
         self.norm_f = RMSNorm(config.n_embd)
-        self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=False)
         self.mamba_layers = nn.ModuleList(
             [
                 MambaBlock(
@@ -91,9 +90,6 @@ class Mamba(nn.Module):
     def get_num_params(self, non_embedding=True):
         """
         Return the number of parameters in the model.
-        For non-embedding count (default), the position embeddings get subtracted.
-        The token embeddings would too, except due to the parameter sharing these
-        params are actually used as weights in the final layer, so we include them.
         """
         n_params = sum(p.numel() for p in self.parameters())
         return n_params
@@ -101,13 +97,7 @@ class Mamba(nn.Module):
     def forward(self, x: torch.Tensor, context: torch.Tensor = None):
         """
         Args:
-            x (float tensor): shape (b, l)    (See Glossary at top for definitions of b, l, d_in, n...)
-
-        Returns:
-            logits: shape (b, l, vocab_size)
-
-        Official Implementation:
-            class MambaLMHeadModel, https://github.com/state-spaces/mamba/blob/main/mamba_ssm/models/mixer_seq_simple.py#L173
+            x (float tensor): input tensor
 
         """
 
@@ -122,9 +112,8 @@ class Mamba(nn.Module):
             x = layer(self.norm_f(x)) + x
 
         x = self.norm_f(x)
-        logits = self.lm_head(x)
 
-        return logits
+        return x
 
 
 def exists(val):
