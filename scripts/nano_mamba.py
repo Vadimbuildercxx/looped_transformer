@@ -51,6 +51,14 @@ class Mamba(nn.Module):
         self.layers = nn.ModuleList([ResidualBlock(config) for _ in range(config.n_layer)])
         self.norm_f = RMSNorm(config.n_embd)
 
+        print("number of parameters: %.2fM" % (self.get_num_params() / 1e6,))
+
+    def get_num_params(self, non_embedding=True):
+        """
+        Return the number of parameters in the model.
+        """
+        return sum(p.numel() for p in self.parameters())
+
     def forward(self, x):
         """
         Args:
