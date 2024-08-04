@@ -88,9 +88,9 @@ class MambaModelLooped(MambaModel):
 
     def f(self, output, embeds):
         if self.loop_func == 'z=f(x+z)':
-            f_output = self._backbone(inputs_embeds=output + embeds)  # [B, 2n + 1, d]
+            f_output = self._backbone(output + embeds)  # [B, 2n + 1, d]
         elif self.loop_func == 'z=f(x*z)':
-            f_output = self._backbone(inputs_embeds=output * embeds)  # [B, 2n + 1, d]
+            f_output = self._backbone(output * embeds)  # [B, 2n + 1, d]
         else:
             raise NotImplementedError
         return f_output
