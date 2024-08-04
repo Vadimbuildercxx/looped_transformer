@@ -7,10 +7,6 @@ MAX_NUM_CLASS = 2  # for openML classification task
 
 class MambaModel(nn.Module):
     def __init__(self, n_dims, n_positions, n_embd=128, n_layer=12, pred_type='regression'):
-        """
-        backbone_architecture: allowed gpt2 or ssm_gpt2
-        """
-
         super(MambaModel, self).__init__()
         self.freq = 2
         self.ind = 0
