@@ -5,6 +5,7 @@ from ssm_models import MambaModelLooped, MambaModel
 
 MAX_NUM_CLASS = 2  # for openML classification task
 
+
 def build_model(conf):
     if conf.family == "gpt2":
         model = TransformerModel(
@@ -191,6 +192,74 @@ class TransformerModelTying(TransformerModel):
         y = prediction[:, self.ind::self.freq, 0]  # [B, n]
 
         return y
+
+
+class TransformerModelLRLooped(TransformerModel):
+    def __init__(self, n_dims, n_positions,
+                 n_embd=128, n_layer=12, n_head=4,
+                 loop_func='z=f(x+z)', pred_type='regression',
+                 default_n_loops=None):
+
+        super(TransformerModelLRLooped, self).__init__(
+            n_dims, n_positions, n_embd, n_layer, n_head, pred_type)
+        self.loop_func = loop_func
+        self.default_n_loops = default_n_loops
+        self.lr = nn.Parameter(torch.rand(1))
+
+    def f(self, output, embeds):
+        if self.loop_func == 'z=f(x+z)':
+            f_output = self._backbone(inputs_embeds=output + embeds)  # [B, 2n + 1, d]
+        elif self.loop_func == 'z=f(x*z)':
+            f_output = self._backbone(inputs_embeds=output * embeds)  # [B, 2n + 1, d]
+        else:
+            raise NotImplementedError
+        return f_output
+
+    def forward(self, xs, ys, n_loop_start=None, n_loops=None):
+        """
+        :param xs: [B, n, d]
+        :param ys: [B, n]
+        :param n_loop_start: int
+        :param n_loops: int
+        :return:
+        """
+        if n_loop_start is None and n_loops is None and self.default_n_loops is None:
+            raise AttributeError
+        elif n_loop_start is None and n_loops is None and self.default_n_loops is not None:
+            n_loop_start = 0
+            n_loops = self.default_n_loops
+
+        B, n, d_in = xs.shape
+        zs = self._combine(xs, ys)  # [B, n, d_in], [B, n], [B, n] -> [B, 2n, d_in + 1]
+        embeds = self._read_in(zs)  # [B, 2n, d_in + 1] -> [B, 2n, d]
+        if self.loop_func in ['z=f(x+z)']:
+            output = torch.zeros_like(embeds)  # also of shape [B, 2n, d]
+        elif self.loop_func in ['z=f(x*z)']:
+            output = torch.ones_like(embeds)  # also of shape [B, 2n, d]
+        else:
+            raise NotImplementedError("Currently we only support loop function z=f(x+z) or z=f(x*z).")
+
+        pred_list = []
+        for idx in range(n_loops):
+
+            if idx < n_loop_start:  # this will save memory when n_loops large.
+                with torch.no_grad():
+                    output = self.f(output, self.lr * embeds)
+            else:
+                output = self.f(output, self.lr * embeds)
+                prediction = self._read_out(output)  # [B, 2n, d] -> [B, 2n, 1]
+                if self._pred_type == 'regression':
+                    y = prediction[:, self.ind::self.freq, 0]
+                elif self._pred_type == 'classification':
+                    y = prediction[:, self.ind::self.freq]
+                else:
+                    raise NotImplementedError
+                pred_list.append(y)
+            if not self.print_flag:
+                print(idx)
+                self.print_flag = True
+
+        return pred_list
 
 
 class TransformerModelLooped(TransformerModel):
