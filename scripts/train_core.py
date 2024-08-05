@@ -109,6 +109,7 @@ def train_step(curriculum, model, xs, ys, optimizer, ctx, scaler, add_inputs_emb
     optimizer.zero_grad(set_to_none=True)
     return loss.detach(), y_pred.detach(), total_norm, norm_dict
 
+
 def train_without_config(model,
                          curriculum,
                          lr=0.0001,
@@ -149,10 +150,8 @@ def train_without_config(model,
         wandb.init(
             dir=out_dir,
             project=project_name,
-            #config=args.__dict__,
             notes=project_notes,
             name=experiment_name,
-            #mode="disabled" if args.debug_mode else "online",
             resume=True,
         )
 
@@ -166,9 +165,6 @@ def train_without_config(model,
         model.parameters(), lr=lr, weight_decay=weight_decay)
     scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
 
-    # Here the model load the pretrained model
-    # args, model, optimizer, curriculum, state_path, starting_step = load_pretrained_model(
-    #     args, model, optimizer, curriculum, device)
 
     pbar = tqdm(range(0, train_steps))
     for i in pbar:
