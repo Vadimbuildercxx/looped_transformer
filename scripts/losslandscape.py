@@ -161,9 +161,7 @@ class LossLandscapePlotting():
         losses = list(self.loss_history[::every_ith])
         if self.loss_history[-1] != losses[-1]:
             losses.append(self.loss_history[-1])
-            
-        # print(parameters, losses)
-            
+
         self.data = [self.data[0].to(self.device), self.data[1].to(self.device)]
 
         total_iters = len(parameters)
@@ -229,24 +227,12 @@ class LossLandscapePlotting():
         return ralpha, rbeta, surface
     
     def plot(self, trace, ralpha, rbeta, surface, colormap='cividis', k=1):
-        
-        # new_trace = []
-        # for point in trace:
-        #     alphaidx = np.abs(point[0] - ralpha).argmin()
-        #     betaidx = np.abs(point[1] - rbeta).argmin()
-        #
-        #     new_trace.append([
-        #         ralpha[alphaidx],
-        #         rbeta[betaidx],
-        #         surface[betaidx, alphaidx]
-        #         ])
-        new_trace = trace # np.array(new_trace)
 
         pl = pv.Plotter()
         
         x, y = np.meshgrid(ralpha, rbeta)
         
-        training_trace = pv.PolyData(new_trace)
+        training_trace = pv.PolyData(trace)
         pl.add_mesh(training_trace,
                     color='#faedcd',
                     point_size=15.0,
@@ -269,7 +255,6 @@ class LossLandscapePlotting():
 
         coef = np.abs(rbeta.max() - rbeta.min()) / np.abs(surface.max() - surface.min()) * k
 
-        # fig, ax = plt.subplots()
         CS = ax_in.contour(
             x,
             y,
@@ -283,5 +268,4 @@ class LossLandscapePlotting():
         ax_in.set_title(label)
 
         ax_in.grid()
-        # plt.savefig('filename.svg')
         return ax_in

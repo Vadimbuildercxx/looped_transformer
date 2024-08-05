@@ -2,8 +2,6 @@
 Mamba implementation from zetascale library and from mamba_minimal with minor changes
 """
 
-import math
-import inspect
 from dataclasses import dataclass
 
 import torch
@@ -11,6 +9,7 @@ import torch.nn as nn
 from torch.nn import functional as F
 
 from einops import rearrange, repeat, einsum
+
 
 class LayerNorm(nn.Module):
     """ LayerNorm but with an optional bias. PyTorch doesn't support simply bias=False """
